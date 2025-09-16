@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "source": "https://www.ato.gov.au",
+    "lastUpdated": "2024-07-01"
+  },
+  "gst": {
+    "standardRate": 0.1,
+    "notes": "Default GST rate applied to most taxable supplies across Australia."
+  },
+  "individual": {
+    "financialYears": [
+      {
+        "year": "2024-25",
+        "effectiveFrom": "2024-07-01",
+        "taxBrackets": [
+          { "threshold": 0, "baseTax": 0, "rate": 0 },
+          { "threshold": 18201, "baseTax": 0, "rate": 0.16 },
+          { "threshold": 45001, "baseTax": 4288, "rate": 0.3 },
+          { "threshold": 135001, "baseTax": 31288, "rate": 0.37 },
+          { "threshold": 190001, "baseTax": 51638, "rate": 0.45 }
+        ]
+      },
+      {
+        "year": "2023-24",
+        "effectiveFrom": "2023-07-01",
+        "taxBrackets": [
+          { "threshold": 0, "baseTax": 0, "rate": 0 },
+          { "threshold": 18201, "baseTax": 0, "rate": 0.19 },
+          { "threshold": 45001, "baseTax": 5092, "rate": 0.325 },
+          { "threshold": 120001, "baseTax": 29467, "rate": 0.37 },
+          { "threshold": 180001, "baseTax": 51667, "rate": 0.45 }
+        ]
+      }
+    ]
+  },
+  "company": {
+    "baseRateEntity": {
+      "rate": 0.25,
+      "criteria": "Aggregated turnover below $50 million and no more than 80% passive income."
+    },
+    "fullRate": {
+      "rate": 0.3,
+      "criteria": "All other companies."
+    }
+  },
+  "penalties": {
+    "failureToLodge": {
+      "unitValue": 313,
+      "maxUnits": 5,
+      "frequencyDays": 28,
+      "description": "Failure to Lodge (FTL) penalties apply for late BAS and income tax returns. One penalty unit is charged for each 28 day period or part thereof that a document is overdue, up to a maximum of five units for small businesses."
+    },
+    "generalInterestCharge": {
+      "description": "General Interest Charge (GIC) accrues on outstanding tax debts on a daily compounding basis. The rate is updated quarterly based on the 90-day bank bill rate plus a premium."
+    }
+  }
+}
