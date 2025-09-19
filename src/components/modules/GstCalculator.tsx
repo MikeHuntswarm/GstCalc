@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CalculatorIcon, CopyIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,8 +22,16 @@ type CopyTarget = 'exclusive' | 'gst' | 'inclusive' | null;
 export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
   const [mode, setMode] = useState<Mode>('exclusive');
   const [amountInput, setAmountInput] = useState('');
-  const [rateInput, setRateInput] = useState((defaultRate * 100).toString());
+  const [rateInput, setRateInput] = useState((defaultRate * 100).toFixed(2));
+  const [rateDirty, setRateDirty] = useState(false);
   const [copyTarget, setCopyTarget] = useState<CopyTarget>(null);
+
+  useEffect(() => {
+    if (!rateDirty) {
+      const nextRate = (defaultRate * 100).toFixed(2);
+      setRateInput((current) => (current !== nextRate ? nextRate : current));
+    }
+  }, [defaultRate, rateDirty]);
 
   const amount = useMemo(() => {
     const value = parseFloat(amountInput.replace(/[^0-9.-]/g, ''));
@@ -128,7 +136,10 @@ export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
               id="rate"
               inputMode="decimal"
               value={rateInput}
-              onChange={(event) => setRateInput(event.target.value)}
+              onChange={(event) => {
+                setRateDirty(true);
+                setRateInput(event.target.value);
+              }}
               placeholder={(defaultRate * 100).toFixed(2)}
             />
             <p className="text-xs text-slate-500">
