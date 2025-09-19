@@ -90,6 +90,7 @@ export default function App() {
                 baseRate={companyRates.baseRateEntity}
                 fullRate={companyRates.fullRate}
                 penalties={penalties}
+                gstRate={gstRate}
               />
             ) : (
               <Alert variant="warning">Company tax rates and penalty schedules are unavailable right now.</Alert>
