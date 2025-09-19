@@ -31,7 +31,8 @@ function getBracketForIncome(income: number, brackets: TaxBracket[]): TaxBracket
 export function calculateIncomeTax(income: number, year: FinancialYearRates): IncomeTaxBreakdown {
   const taxableIncome = Math.max(0, income);
   const bracket = getBracketForIncome(taxableIncome, year.taxBrackets);
-  const taxablePortion = Math.max(0, taxableIncome - bracket.threshold);
+  const inclusiveThreshold = bracket.threshold > 0 ? bracket.threshold - 1 : 0;
+  const taxablePortion = Math.max(0, taxableIncome - inclusiveThreshold);
   const annualTax = Math.max(0, bracket.baseTax + taxablePortion * bracket.rate);
   const netAnnualIncome = taxableIncome - annualTax;
   const weeklyTax = annualTax / 52;
