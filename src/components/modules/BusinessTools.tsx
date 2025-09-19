@@ -14,9 +14,10 @@ interface BusinessToolsProps {
   baseRate: CompanyRate;
   fullRate: CompanyRate;
   penalties: PenaltySchedule;
+  gstRate?: number;
 }
 
-export function BusinessTools({ baseRate, fullRate, penalties }: BusinessToolsProps) {
+export function BusinessTools({ baseRate, fullRate, penalties, gstRate = 0.1 }: BusinessToolsProps) {
   const [sales, setSales] = useState('');
   const [gstCollected, setGstCollected] = useState('');
   const [gstCredits, setGstCredits] = useState('');
@@ -141,11 +142,11 @@ export function BusinessTools({ baseRate, fullRate, penalties }: BusinessToolsPr
               variant="ghost"
               size="sm"
               onClick={() => {
-                const gstRate = 0.1;
-                setGstCollected((parsedSales * (gstRate / (1 + gstRate))).toFixed(2));
+                const gstOnSales = parsedSales * (gstRate / (1 + gstRate));
+                setGstCollected(gstOnSales.toFixed(2));
               }}
             >
-              Autofill GST on sales (10%)
+              Autofill GST on sales ({formatPercent(gstRate)})
             </Button>
           </div>
           <p className="text-xs text-slate-500">
