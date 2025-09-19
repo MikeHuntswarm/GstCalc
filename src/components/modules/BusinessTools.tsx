@@ -100,7 +100,10 @@ export function BusinessTools({ baseRate, fullRate, penalties }: BusinessToolsPr
                 placeholder="e.g. 125000"
                 onChange={(event) => setSales(event.target.value)}
               />
-              <p className="text-xs text-slate-500">Include GST in this figure if you report on a GST-inclusive basis.</p>
+              <p className="text-xs text-slate-500">
+                Include GST in this figure if you report on a GST-inclusive basis — the autofill assumes the total is
+                GST inclusive.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="gstCollected">GST collected (1A)</Label>
@@ -139,7 +142,7 @@ export function BusinessTools({ baseRate, fullRate, penalties }: BusinessToolsPr
               size="sm"
               onClick={() => {
                 const gstRate = 0.1;
-                setGstCollected((parsedSales * gstRate).toFixed(2));
+                setGstCollected((parsedSales * (gstRate / (1 + gstRate))).toFixed(2));
               }}
             >
               Autofill GST on sales (10%)
