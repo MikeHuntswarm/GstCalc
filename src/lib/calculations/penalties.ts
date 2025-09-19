@@ -12,18 +12,17 @@ export function estimateFailureToLodgePenalty(
   schedule: PenaltySchedule['failureToLodge']
 ): FailureToLodgeEstimate {
   const safeDaysLate = Math.max(0, Math.floor(daysLate));
-  const periods = Math.min(
-    Math.ceil(safeDaysLate / schedule.frequencyDays) || (safeDaysLate > 0 ? 1 : 0),
-    schedule.maxUnits
-  );
-  const penaltyUnits = periods;
+  const calculatedPeriods = Math.ceil(safeDaysLate / schedule.frequencyDays);
+  const normalisedPeriods = Number.isFinite(calculatedPeriods) ? Math.max(0, calculatedPeriods) : 0;
+  const periodsLate = normalisedPeriods || (safeDaysLate > 0 ? 1 : 0);
+  const penaltyUnits = Math.min(periodsLate, schedule.maxUnits);
   const amount = penaltyUnits * schedule.unitValue;
 
   return {
     daysLate: safeDaysLate,
     penaltyUnits,
     amount,
-    periodsLate: periods
+    periodsLate
   };
 }
 
