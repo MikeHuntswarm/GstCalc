@@ -5,7 +5,21 @@ export interface GstResult {
 }
 
 function roundCurrency(value: number) {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
+  const factor = 100;
+  let scaled = Math.abs(value) * factor;
+
+  if (value < 0) {
+    const fraction = scaled - Math.floor(scaled);
+    const threshold = 1e-10;
+
+    if (Math.abs(fraction - 0.5) < threshold) {
+      scaled += threshold;
+    }
+  }
+
+  const roundedCents = Math.round(scaled);
+  const result = (value < 0 ? -1 : 1) * (roundedCents / factor);
+  return result === 0 ? 0 : result;
 }
 
 export function calculateFromExclusive(amount: number, rate: number): GstResult {
