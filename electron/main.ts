@@ -1,11 +1,18 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'node:path';
-import { autoUpdater } from 'electron-updater';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+const require = createRequire(import.meta.url);
+const { autoUpdater } = require<typeof import('electron-updater')>('electron-updater');
 
 const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL;
 
+const __filename = fileURLToPath(import.meta.url);
+const appRoot = path.dirname(__filename);
+
 function resolvePreload() {
-  return path.join(__dirname, 'preload.js');
+  return path.join(appRoot, 'preload.js');
 }
 
 async function createMainWindow() {
@@ -39,7 +46,7 @@ async function createMainWindow() {
   if (process.env.VITE_DEV_SERVER_URL) {
     await mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    await mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    await mainWindow.loadFile(path.join(appRoot, '../dist/index.html'));
   }
 
   return mainWindow;
@@ -54,7 +61,7 @@ function setupAutoUpdates() {
     console.error('Auto update error:', error);
   });
 
-  autoUpdater.checkForUpdatesAndNotify().catch((error) => {
+  autoUpdater.checkForUpdatesAndNotify().catch((error: unknown) => {
     console.error('Failed to check for updates', error);
   });
 }
