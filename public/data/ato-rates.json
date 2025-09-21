@@ -93,5 +93,101 @@
     "generalInterestCharge": {
       "description": "General Interest Charge (GIC) accrues on outstanding tax debts on a daily compounding basis. The rate is updated quarterly based on the 90-day bank bill rate plus a premium."
     }
+  },
+  "lodgements": {
+    "basQuarters": [
+      {
+        "label": "Q1 (Jul-Sep)",
+        "period": "1 July - 30 September",
+        "standardDueDate": "28 October",
+        "notes": "Tax or BAS agents may receive an extension to 25 November."
+      },
+      {
+        "label": "Q2 (Oct-Dec)",
+        "period": "1 October - 31 December",
+        "standardDueDate": "28 February",
+        "notes": "No extension even when lodging online; payment is also due 28 February."
+      },
+      {
+        "label": "Q3 (Jan-Mar)",
+        "period": "1 January - 31 March",
+        "standardDueDate": "28 April",
+        "notes": "If the due date falls on a weekend or holiday, it moves to the next business day."
+      },
+      {
+        "label": "Q4 (Apr-Jun)",
+        "period": "1 April - 30 June",
+        "standardDueDate": "28 July",
+        "notes": "Finalise payroll and superannuation before lodging to keep PAYG withholding accurate."
+      }
+    ],
+    "annualObligations": [
+      {
+        "name": "Income tax return (self-lodged sole traders and small companies)",
+        "dueDate": "31 October",
+        "notes": "Tax agents have their own lodgement program when engaged before 31 October."
+      },
+      {
+        "name": "Income tax return via registered tax agent",
+        "dueDate": "15 May",
+        "notes": "Exact due date depends on your agent's ATO lodgement program listing."
+      },
+      {
+        "name": "Annual GST return (annual payers)",
+        "dueDate": "28 February",
+        "notes": "Aligns with Q2 BAS deadline when you report annually."
+      },
+      {
+        "name": "Fringe benefits tax (FBT) annual return",
+        "dueDate": "21 May",
+        "notes": "If lodged through a tax agent the due date can be extended to 25 June."
+      },
+      {
+        "name": "PAYG withholding annual report",
+        "dueDate": "14 August",
+        "notes": "Electronic lodgers receive an extension to 14 September."
+      }
+    ]
+  },
+  "taxPlanning": {
+    "disclaimer": "General information only. Discuss with a registered tax professional before applying to your circumstances.",
+    "strategies": [
+      {
+        "title": "Smooth cash flow with PAYG instalments",
+        "summary": "Review quarterly PAYG instalments so they better match your actual profitability.",
+        "actions": [
+          "Compare each instalment with year-to-date profit and forecast the full-year result.",
+          "Submit a variation through Online services for business when income materially changes."
+        ],
+        "caution": "Underestimating instalments can trigger interest or penalties if the variance is significant."
+      },
+      {
+        "title": "Plan deductions before 30 June",
+        "summary": "Bring forward tax-deductible expenses or write-offs where it helps manage your taxable income.",
+        "actions": [
+          "Review asset replacement plans and consider instant asset write-off thresholds.",
+          "Prepay eligible expenses (like rent or insurance) where cash flow allows."
+        ],
+        "caution": "Ensure expenses are genuinely incurred for business purposes and keep supporting documentation."
+      },
+      {
+        "title": "Use superannuation contributions strategically",
+        "summary": "Contribute to super within the concessional cap to reduce taxable profits and build retirement savings.",
+        "actions": [
+          "Track the $27,500 concessional cap and consider catch-up amounts if eligible.",
+          "Ensure contributions clear the fund before 30 June to count for that financial year."
+        ],
+        "caution": "Excess contributions can attract additional tax; check timing with your fund administrator."
+      },
+      {
+        "title": "Document business use percentages",
+        "summary": "Maintain logs for mixed-use assets to substantiate the deductible business portion.",
+        "actions": [
+          "Update vehicle logbooks every five years or when usage changes materially.",
+          "Record home office, phone, and internet usage with contemporaneous evidence."
+        ],
+        "caution": "Private usage claims without evidence increase audit risk."
+      }
+    ]
   }
 }

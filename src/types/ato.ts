@@ -32,6 +32,36 @@ export interface PenaltySchedule {
   };
 }
 
+export interface BasQuarter {
+  label: string;
+  period: string;
+  standardDueDate: string;
+  notes?: string;
+}
+
+export interface AnnualObligation {
+  name: string;
+  dueDate: string;
+  notes?: string;
+}
+
+export interface LodgementSchedule {
+  basQuarters: BasQuarter[];
+  annualObligations: AnnualObligation[];
+}
+
+export interface TaxStrategy {
+  title: string;
+  summary: string;
+  actions: string[];
+  caution?: string;
+}
+
+export interface TaxPlanning {
+  disclaimer: string;
+  strategies: TaxStrategy[];
+}
+
 export interface AtoRates {
   metadata: {
     source: string;
@@ -46,4 +76,6 @@ export interface AtoRates {
     fullRate: CompanyRate;
   };
   penalties: PenaltySchedule;
+  lodgements?: LodgementSchedule;
+  taxPlanning?: TaxPlanning;
 }

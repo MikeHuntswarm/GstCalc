@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangleIcon, Building2Icon, CalendarClockIcon } from 'lucide-react';
+import {
+  AlertTriangleIcon,
+  Building2Icon,
+  CalendarCheckIcon,
+  CalendarClockIcon,
+  LightbulbIcon
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,7 +13,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { formatCurrency, formatPercent } from '@/lib/utils';
-import type { CompanyRate, PenaltySchedule } from '@/types/ato';
+import type {
+  CompanyRate,
+  PenaltySchedule,
+  LodgementSchedule,
+  TaxPlanning
+} from '@/types/ato';
 import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
 
 interface BusinessToolsProps {
@@ -15,9 +26,18 @@ interface BusinessToolsProps {
   fullRate: CompanyRate;
   penalties: PenaltySchedule;
   gstRate?: number;
+  lodgements?: LodgementSchedule;
+  taxPlanning?: TaxPlanning;
 }
 
-export function BusinessTools({ baseRate, fullRate, penalties, gstRate = 0.1 }: BusinessToolsProps) {
+export function BusinessTools({
+  baseRate,
+  fullRate,
+  penalties,
+  gstRate = 0.1,
+  lodgements,
+  taxPlanning
+}: BusinessToolsProps) {
   const [sales, setSales] = useState('');
   const [gstCollected, setGstCollected] = useState('');
   const [gstCredits, setGstCredits] = useState('');
@@ -39,6 +59,10 @@ export function BusinessTools({ baseRate, fullRate, penalties, gstRate = 0.1 }: 
     () => estimateFailureToLodgePenalty(parsedDaysLate, penalties.failureToLodge),
     [parsedDaysLate, penalties.failureToLodge]
   );
+
+  const basQuarters = lodgements?.basQuarters ?? [];
+  const annualObligations = lodgements?.annualObligations ?? [];
+  const strategies = taxPlanning?.strategies ?? [];
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -70,8 +94,8 @@ export function BusinessTools({ baseRate, fullRate, penalties, gstRate = 0.1 }: 
             </div>
           </div>
           <Alert>
-            Companies that qualify for the base rate entity concessions must also apply the lower company tax
-            rate when franking distributions.
+            Companies that qualify for the base rate entity concessions must also apply the lower company tax rate when
+            franking distributions.
           </Alert>
         </CardContent>
       </Card>
@@ -102,8 +126,8 @@ export function BusinessTools({ baseRate, fullRate, penalties, gstRate = 0.1 }: 
                 onChange={(event) => setSales(event.target.value)}
               />
               <p className="text-xs text-slate-500">
-                Include GST in this figure if you report on a GST-inclusive basis — the autofill assumes the total is
-                GST inclusive.
+                Include GST in this figure if you report on a GST-inclusive basis - the autofill assumes the total is GST
+                inclusive.
               </p>
             </div>
             <div className="space-y-2">
@@ -199,17 +223,123 @@ export function BusinessTools({ baseRate, fullRate, penalties, gstRate = 0.1 }: 
               </div>
               <p className="mt-3 text-sm text-red-800">{penalties.failureToLodge.description}</p>
               <p className="mt-2 text-xs text-red-700">
-                Penalty unit value: {formatCurrency(penalties.failureToLodge.unitValue)}. Capped at
-                {` ${penalties.failureToLodge.maxUnits} `}units for small entities.
+                Penalty unit value: {formatCurrency(penalties.failureToLodge.unitValue)}. Capped at {` ${penalties.failureToLodge.maxUnits} `}units for
+                small entities.
               </p>
             </div>
           </div>
           <Alert variant="warning">
-            {penalties.generalInterestCharge.description} Plan for cash flow ahead of time or contact the ATO to
-            negotiate a payment arrangement.
+            {penalties.generalInterestCharge.description} Plan for cash flow ahead of time or contact the ATO to negotiate a
+            payment arrangement.
           </Alert>
         </CardContent>
       </Card>
+
+      {(basQuarters.length > 0 || annualObligations.length > 0) && (
+        <Card className="lg:col-span-2">
+          <CardHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                <CalendarCheckIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <CardTitle className="text-2xl">Lodgement calendar</CardTitle>
+                <CardDescription>
+                  Keep an eye on the next BAS deadline and annual obligations so nothing slips through the cracks.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {basQuarters.length > 0 ? (
+              <div>
+                <p className="text-xs uppercase text-slate-500">Quarterly BAS</p>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  {basQuarters.map((quarter) => (
+                    <div
+                      key={quarter.label}
+                      className="rounded-lg border border-sky-200 bg-sky-50 p-4"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-sky-900">{quarter.label}</h4>
+                        <Badge variant="outline">Due {quarter.standardDueDate}</Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-sky-800">{quarter.period}</p>
+                      {quarter.notes ? <p className="mt-2 text-xs text-sky-700">{quarter.notes}</p> : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {annualObligations.length > 0 ? (
+              <div>
+                <p className="text-xs uppercase text-slate-500">Key annual lodgements</p>
+                <div className="mt-3 space-y-3">
+                  {annualObligations.map((item) => (
+                    <div
+                      key={item.name}
+                      className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="text-sm font-semibold text-slate-900">{item.name}</h4>
+                        <Badge variant="outline">Due {item.dueDate}</Badge>
+                      </div>
+                      {item.notes ? <p className="mt-2 text-xs text-slate-600">{item.notes}</p> : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <p className="text-xs text-slate-500">
+              Always confirm due dates in Online services for business or with your registered tax or BAS agent because the ATO
+              can grant different lodgement programs.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {strategies.length > 0 ? (
+        <Card className="lg:col-span-2">
+          <CardHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                <LightbulbIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <CardTitle className="text-2xl">Tax mitigation ideas</CardTitle>
+                <CardDescription>
+                  Explore conversation starters for your advisor to help manage taxable income and cash flow.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-xs text-slate-500">{taxPlanning?.disclaimer}</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              {strategies.map((strategy) => (
+                <div key={strategy.title} className="space-y-3 rounded-lg border border-emerald-200 bg-white p-4 shadow-sm">
+                  <div>
+                    <h4 className="text-sm font-semibold text-emerald-900">{strategy.title}</h4>
+                    <p className="mt-1 text-xs text-emerald-800">{strategy.summary}</p>
+                  </div>
+                  <ul className="space-y-2 text-xs text-slate-600">
+                    {strategy.actions.map((action) => (
+                      <li key={action} className="rounded bg-emerald-50 px-3 py-2">
+                        {action}
+                      </li>
+                    ))}
+                  </ul>
+                  {strategy.caution ? (
+                    <p className="text-xs text-amber-700">{strategy.caution}</p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

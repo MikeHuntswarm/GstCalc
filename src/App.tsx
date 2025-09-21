@@ -27,6 +27,8 @@ export default function App() {
   const lastUpdated = data?.metadata.lastUpdated ?? new Date().toISOString();
   const companyRates = data?.company;
   const penalties = data?.penalties;
+  const lodgements = data?.lodgements;
+  const taxPlanning = data?.taxPlanning;
 
   const readyForIndividual = financialYears.length > 0;
   const readyForBusiness = Boolean(companyRates && penalties);
@@ -91,6 +93,8 @@ export default function App() {
                 fullRate={companyRates.fullRate}
                 penalties={penalties}
                 gstRate={gstRate}
+                lodgements={lodgements}
+                taxPlanning={taxPlanning}
               />
             ) : (
               <Alert variant="warning">Company tax rates and penalty schedules are unavailable right now.</Alert>
@@ -111,3 +115,4 @@ export default function App() {
     </div>
   );
 }
+

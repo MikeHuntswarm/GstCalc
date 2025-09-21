@@ -13,6 +13,8 @@ interface RatePayload {
   individual?: unknown;
   company?: unknown;
   penalties?: unknown;
+  lodgements?: unknown;
+  taxPlanning?: unknown;
 }
 
 function assertValidPayload(payload: RatePayload) {
@@ -20,7 +22,7 @@ function assertValidPayload(payload: RatePayload) {
     throw new Error('ATO rate payload was empty');
   }
 
-  const requiredKeys: (keyof RatePayload)[] = ['metadata', 'gst', 'individual', 'company', 'penalties'];
+  const requiredKeys: (keyof RatePayload)[] = ['metadata', 'gst', 'individual', 'company', 'penalties', 'lodgements', 'taxPlanning'];
   for (const key of requiredKeys) {
     if (!(key in payload)) {
       throw new Error(`ATO rate payload missing key: ${key}`);
@@ -170,3 +172,4 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
