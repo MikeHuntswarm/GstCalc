@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { GstCalculator } from '@/components/modules/GstCalculator';
 import { IncomeTaxCalculator } from '@/components/modules/IncomeTaxCalculator';
 import { BusinessTools } from '@/components/modules/BusinessTools';
+import { AnnualBusinessTax } from '@/components/modules/AnnualBusinessTax';
 import { useAtoRates } from '@/hooks/useAtoRates';
 import { formatPercent } from '@/lib/utils';
 
@@ -74,6 +75,7 @@ export default function App() {
           <TabsList className="self-start">
             <TabsTrigger value="individual">Individual tools</TabsTrigger>
             <TabsTrigger value="business">Business tools</TabsTrigger>
+            <TabsTrigger value="annual-tax">Annual business tax</TabsTrigger>
           </TabsList>
 
           <TabsContent value="individual" className="space-y-6">
@@ -98,6 +100,14 @@ export default function App() {
               />
             ) : (
               <Alert variant="warning">Company tax rates and penalty schedules are unavailable right now.</Alert>
+            )}
+          </TabsContent>
+
+          <TabsContent value="annual-tax" className="space-y-6">
+            {readyForBusiness && companyRates ? (
+              <AnnualBusinessTax baseRate={companyRates.baseRateEntity} fullRate={companyRates.fullRate} />
+            ) : (
+              <Alert variant="warning">Company rate data is unavailable. Refresh the dataset to try again.</Alert>
             )}
           </TabsContent>
         </Tabs>
