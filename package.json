@@ -1,6 +1,6 @@
 {
   "name": "gstcalc",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Australian Tax & GST calculator desktop application built with Electron and React.",
   "author": "",
   "license": "ISC",
@@ -41,7 +41,8 @@
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "electron-updater": "^6.6.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -57,7 +58,6 @@
     "cross-env": "^10.0.0",
     "electron": "^38.1.0",
     "electron-builder": "^26.0.12",
-    "electron-updater": "^6.6.2",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.2",
