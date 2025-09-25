@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const { autoUpdater } = require<typeof import('electron-updater')>('electron-updater');
+const { autoUpdater } = require('electron-updater') as typeof import('electron-updater');
 
 const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL;
 
@@ -57,7 +57,7 @@ function setupAutoUpdates() {
     return;
   }
 
-  autoUpdater.on('error', (error) => {
+  autoUpdater.on('error', (error: Error) => {
     console.error('Auto update error:', error);
   });
 
@@ -82,3 +82,4 @@ app.whenReady().then(async () => {
     }
   });
 });
+
