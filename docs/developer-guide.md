@@ -61,6 +61,9 @@ Automated workflows execute the same checks plus packaging tasks.
   NSIS installer in `release/`.
 - Auto-update uses GitHub Releases via `electron-updater`. Provide a `GH_TOKEN` when packaging locally if you want
   to publish a draft release from the CLI.
+- `npm run release:prepare -- --type patch --notes "Summary of changes"` bumps the version, updates `CHANGELOG.md`,
+  writes `docs/releases/<version>.md`, and re-builds distribution assets. Add `--dry-run` to preview, `--skip-build` to
+  skip the build, or `--package` to also produce installers.
 
 ## Updating tax rates
 
