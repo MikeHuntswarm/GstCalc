@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { RefreshCwIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,12 @@ import { BusinessTools } from '@/components/modules/BusinessTools';
 import { AnnualBusinessTax } from '@/components/modules/AnnualBusinessTax';
 import { useAtoRates } from '@/hooks/useAtoRates';
 import { formatPercent } from '@/lib/utils';
+import { sendNotification } from '@/lib/notifications';
+
+interface Reminder {
+  label: string;
+  dueDate: string;
+}
 
 function LoadingState({ message }: { message: string }) {
   return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
@@ -21,6 +27,39 @@ function ErrorState({ message }: { message: string }) {
 
 export default function App() {
   const { data, status, error, stale, refresh } = useAtoRates();
+
+  useEffect(() => {
+    const storedReminders = localStorage.getItem('gstcalc-reminders');
+    if (storedReminders) {
+      const reminders = JSON.parse(storedReminders) as Reminder[];
+      const now = new Date();
+
+      reminders.forEach((reminder) => {
+        const dueDate = new Date(reminder.dueDate);
+        if (isNaN(dueDate.getTime())) {
+          // Attempt to parse dates like "28 October"
+          const parsedDate = new Date(`${reminder.dueDate} ${now.getFullYear()}`);
+          if (!isNaN(parsedDate.getTime())) {
+            dueDate.setDate(parsedDate.getDate());
+            dueDate.setMonth(parsedDate.getMonth());
+            dueDate.setFullYear(parsedDate.getFullYear());
+          }
+        }
+
+        if (!isNaN(dueDate.getTime())) {
+          const timeDiff = dueDate.getTime() - now.getTime();
+          const daysUntilDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+          if (daysUntilDue > 0 && daysUntilDue <= 7) {
+            sendNotification(
+              'Upcoming BAS Lodgement',
+              `Your ${reminder.label} is due in ${daysUntilDue} days.`,
+            );
+          }
+        }
+      });
+    }
+  }, []);
 
   const gstRate = data?.gst.standardRate ?? 0.1;
   const gstNotes = data?.gst.notes;

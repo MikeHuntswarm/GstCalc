@@ -27,6 +27,11 @@ interface BusinessToolsProps {
   taxPlanning?: TaxPlanning;
 }
 
+interface Reminder {
+  label: string;
+  dueDate: string;
+}
+
 export function BusinessTools({
   baseRate,
   fullRate,
@@ -39,7 +44,7 @@ export function BusinessTools({
   const [gstCollected, setGstCollected] = useState('');
   const [gstCredits, setGstCredits] = useState('');
   const [daysLate, setDaysLate] = useState('');
-  const [reminders, setReminders] = useState<string[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
 
   useEffect(() => {
     const storedReminders = localStorage.getItem('gstcalc-reminders');
@@ -72,17 +77,19 @@ export function BusinessTools({
   const annualObligations = lodgements?.annualObligations ?? [];
   const strategies = taxPlanning?.strategies ?? [];
 
-  const toggleReminder = (quarterLabel: string) => {
-    const newReminders = reminders.includes(quarterLabel)
-      ? reminders.filter((r) => r !== quarterLabel)
-      : [...reminders, quarterLabel];
+  const toggleReminder = (quarter: { label: string; standardDueDate: string }) => {
+    const isReminderSet = reminders.some((r) => r.label === quarter.label);
+    const newReminders = isReminderSet
+      ? reminders.filter((r) => r.label !== quarter.label)
+      : [...reminders, { label: quarter.label, dueDate: quarter.standardDueDate }];
+
     setReminders(newReminders);
     localStorage.setItem('gstcalc-reminders', JSON.stringify(newReminders));
 
-    if (newReminders.includes(quarterLabel)) {
+    if (!isReminderSet) {
       sendNotification(
         'BAS Reminder Set',
-        `You will be reminded about the ${quarterLabel} lodgement. (This is a demo, reminders are not yet functional)`,
+        `You will be reminded about the ${quarter.label} lodgement.`,
       );
     }
   };
@@ -309,12 +316,12 @@ export function BusinessTools({
                         )}
                         <Button
                           size="sm"
-                          variant={reminders.includes(quarter.label) ? 'default' : 'outline'}
-                          onClick={() => toggleReminder(quarter.label)}
+                          variant={reminders.some((r) => r.label === quarter.label) ? 'default' : 'outline'}
+                          onClick={() => toggleReminder(quarter)}
                           className="gap-2"
                         >
                           <BellIcon className="h-4 w-4" />
-                          {reminders.includes(quarter.label) ? 'Reminder set' : 'Remind me'}
+                          {reminders.some((r) => r.label === quarter.label) ? 'Reminder set' : 'Remind me'}
                         </Button>
                       </div>
                     </div>
