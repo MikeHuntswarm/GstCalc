@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, Notification } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, Notification, net } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -78,6 +78,19 @@ app.whenReady().then(async () => {
 
   ipcMain.on('show-notification', (event, title, body) => {
     new Notification({ title, body }).show();
+  });
+
+  ipcMain.handle('get-ato-rates', async (event, url) => {
+    try {
+      const response = await net.fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch ATO rates:', error);
+      throw error;
+    }
   });
 
   app.on('activate', async () => {

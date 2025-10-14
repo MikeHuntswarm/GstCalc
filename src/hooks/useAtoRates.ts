@@ -47,6 +47,11 @@ function writeCache(data: AtoRates) {
 }
 
 async function fetchJson(url: string): Promise<AtoRates> {
+  if (window.gstcalc && window.gstcalc.getAtoRates) {
+    return window.gstcalc.getAtoRates(url);
+  }
+
+  // Fallback for non-Electron environments (e.g. web)
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
