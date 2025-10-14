@@ -77,7 +77,12 @@ app.whenReady().then(async () => {
   setupAutoUpdates();
 
   ipcMain.on('show-notification', (event, title, body) => {
-    new Notification({ title, body }).show();
+    console.log(`Showing notification: ${title} - ${body}`);
+    if (Notification.isSupported()) {
+      new Notification({ title, body }).show();
+    } else {
+      console.log('Notifications are not supported on this system.');
+    }
   });
 
   ipcMain.handle('get-ato-rates', async (event, url) => {
