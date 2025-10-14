@@ -22,4 +22,4 @@
 ## Uninstallation
 
 - Use **Add or remove programs** in Windows Settings and remove “GSTCalc”.
-- Alternatively, re-run the installer and choose *Uninstall*.
+- Alternatively, re-run the installer and choose _Uninstall_.

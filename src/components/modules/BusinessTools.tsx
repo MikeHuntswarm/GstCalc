@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   AlertTriangleIcon,
   Building2Icon,
   CalendarCheckIcon,
   CalendarClockIcon,
-  LightbulbIcon
+  LightbulbIcon,
+  BellIcon,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,13 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { formatCurrency, formatPercent } from '@/lib/utils';
-import type {
-  CompanyRate,
-  PenaltySchedule,
-  LodgementSchedule,
-  TaxPlanning
-} from '@/types/ato';
+import type { CompanyRate, PenaltySchedule, LodgementSchedule, TaxPlanning } from '@/types/ato';
 import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
+import { sendNotification } from '@/lib/notifications';
 
 interface BusinessToolsProps {
   baseRate: CompanyRate;
@@ -36,33 +33,59 @@ export function BusinessTools({
   penalties,
   gstRate = 0.1,
   lodgements,
-  taxPlanning
+  taxPlanning,
 }: BusinessToolsProps) {
   const [sales, setSales] = useState('');
   const [gstCollected, setGstCollected] = useState('');
   const [gstCredits, setGstCredits] = useState('');
   const [daysLate, setDaysLate] = useState('');
+  const [reminders, setReminders] = useState<string[]>([]);
+
+  useEffect(() => {
+    const storedReminders = localStorage.getItem('gstcalc-reminders');
+    if (storedReminders) {
+      setReminders(JSON.parse(storedReminders));
+    }
+  }, []);
 
   const parsedSales = useMemo(() => parseFloat(sales.replace(/[^0-9.-]/g, '')) || 0, [sales]);
   const parsedGstCollected = useMemo(
     () => parseFloat(gstCollected.replace(/[^0-9.-]/g, '')) || 0,
-    [gstCollected]
+    [gstCollected],
   );
   const parsedGstCredits = useMemo(
     () => parseFloat(gstCredits.replace(/[^0-9.-]/g, '')) || 0,
-    [gstCredits]
+    [gstCredits],
   );
   const parsedDaysLate = useMemo(() => Math.max(0, parseInt(daysLate || '0', 10) || 0), [daysLate]);
 
-  const netGst = useMemo(() => parsedGstCollected - parsedGstCredits, [parsedGstCollected, parsedGstCredits]);
+  const netGst = useMemo(
+    () => parsedGstCollected - parsedGstCredits,
+    [parsedGstCollected, parsedGstCredits],
+  );
   const ftlEstimate = useMemo(
     () => estimateFailureToLodgePenalty(parsedDaysLate, penalties.failureToLodge),
-    [parsedDaysLate, penalties.failureToLodge]
+    [parsedDaysLate, penalties.failureToLodge],
   );
 
   const basQuarters = lodgements?.basQuarters ?? [];
   const annualObligations = lodgements?.annualObligations ?? [];
   const strategies = taxPlanning?.strategies ?? [];
+
+  const toggleReminder = (quarterLabel: string) => {
+    const newReminders = reminders.includes(quarterLabel)
+      ? reminders.filter((r) => r !== quarterLabel)
+      : [...reminders, quarterLabel];
+    setReminders(newReminders);
+    localStorage.setItem('gstcalc-reminders', JSON.stringify(newReminders));
+
+    if (newReminders.includes(quarterLabel)) {
+      sendNotification(
+        'BAS Reminder Set',
+        `You will be reminded about the ${quarterLabel} lodgement. (This is a demo, reminders are not yet functional)`,
+      );
+    }
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -75,7 +98,8 @@ export function BusinessTools({
             <div>
               <CardTitle className="text-2xl">Company tax quick reference</CardTitle>
               <CardDescription>
-                Understand the company tax rate that applies based on your turnover and passive income mix.
+                Understand the company tax rate that applies based on your turnover and passive
+                income mix.
               </CardDescription>
             </div>
           </div>
@@ -84,18 +108,22 @@ export function BusinessTools({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
               <p className="text-xs uppercase text-indigo-700">Base rate entity</p>
-              <p className="mt-2 text-3xl font-semibold text-indigo-900">{formatPercent(baseRate.rate)}</p>
+              <p className="mt-2 text-3xl font-semibold text-indigo-900">
+                {formatPercent(baseRate.rate)}
+              </p>
               <p className="mt-2 text-sm text-indigo-900/80">{baseRate.criteria}</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-xs uppercase text-slate-500">Full company rate</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">{formatPercent(fullRate.rate)}</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">
+                {formatPercent(fullRate.rate)}
+              </p>
               <p className="mt-2 text-sm text-slate-600">{fullRate.criteria}</p>
             </div>
           </div>
           <Alert>
-            Companies that qualify for the base rate entity concessions must also apply the lower company tax rate when
-            franking distributions.
+            Companies that qualify for the base rate entity concessions must also apply the lower
+            company tax rate when franking distributions.
           </Alert>
         </CardContent>
       </Card>
@@ -126,8 +154,8 @@ export function BusinessTools({
                 onChange={(event) => setSales(event.target.value)}
               />
               <p className="text-xs text-slate-500">
-                Include GST in this figure if you report on a GST-inclusive basis - the autofill assumes the total is GST
-                inclusive.
+                Include GST in this figure if you report on a GST-inclusive basis - the autofill
+                assumes the total is GST inclusive.
               </p>
             </div>
             <div className="space-y-2">
@@ -139,7 +167,9 @@ export function BusinessTools({
                 placeholder="e.g. 12500"
                 onChange={(event) => setGstCollected(event.target.value)}
               />
-              <p className="text-xs text-slate-500">Total GST on sales and other taxable supplies.</p>
+              <p className="text-xs text-slate-500">
+                Total GST on sales and other taxable supplies.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="gstCredits">GST credits (1B)</Label>
@@ -150,7 +180,9 @@ export function BusinessTools({
                 placeholder="e.g. 8500"
                 onChange={(event) => setGstCredits(event.target.value)}
               />
-              <p className="text-xs text-slate-500">Include all input tax credits you are entitled to claim.</p>
+              <p className="text-xs text-slate-500">
+                Include all input tax credits you are entitled to claim.
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
@@ -174,7 +206,8 @@ export function BusinessTools({
             </Button>
           </div>
           <p className="text-xs text-slate-500">
-            Tip: lodge and pay by the due date to avoid Failure to Lodge penalties and daily interest charges.
+            Tip: lodge and pay by the due date to avoid Failure to Lodge penalties and daily
+            interest charges.
           </p>
         </CardContent>
       </Card>
@@ -214,7 +247,9 @@ export function BusinessTools({
                 </div>
                 <div>
                   <p className="text-sm text-red-800">Dollar impact</p>
-                  <p className="text-2xl font-semibold text-red-900">{formatCurrency(ftlEstimate.amount)}</p>
+                  <p className="text-2xl font-semibold text-red-900">
+                    {formatCurrency(ftlEstimate.amount)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-red-800">28-day periods late</p>
@@ -223,14 +258,14 @@ export function BusinessTools({
               </div>
               <p className="mt-3 text-sm text-red-800">{penalties.failureToLodge.description}</p>
               <p className="mt-2 text-xs text-red-700">
-                Penalty unit value: {formatCurrency(penalties.failureToLodge.unitValue)}. Capped at {` ${penalties.failureToLodge.maxUnits} `}units for
-                small entities.
+                Penalty unit value: {formatCurrency(penalties.failureToLodge.unitValue)}. Capped at{' '}
+                {` ${penalties.failureToLodge.maxUnits} `}units for small entities.
               </p>
             </div>
           </div>
           <Alert variant="warning">
-            {penalties.generalInterestCharge.description} Plan for cash flow ahead of time or contact the ATO to negotiate a
-            payment arrangement.
+            {penalties.generalInterestCharge.description} Plan for cash flow ahead of time or
+            contact the ATO to negotiate a payment arrangement.
           </Alert>
         </CardContent>
       </Card>
@@ -245,7 +280,8 @@ export function BusinessTools({
               <div>
                 <CardTitle className="text-2xl">Lodgement calendar</CardTitle>
                 <CardDescription>
-                  Keep an eye on the next BAS deadline and annual obligations so nothing slips through the cracks.
+                  Keep an eye on the next BAS deadline and annual obligations so nothing slips
+                  through the cracks.
                 </CardDescription>
               </div>
             </div>
@@ -265,7 +301,22 @@ export function BusinessTools({
                         <Badge variant="outline">Due {quarter.standardDueDate}</Badge>
                       </div>
                       <p className="mt-1 text-xs text-sky-800">{quarter.period}</p>
-                      {quarter.notes ? <p className="mt-2 text-xs text-sky-700">{quarter.notes}</p> : null}
+                      <div className="mt-3 flex items-center justify-between">
+                        {quarter.notes ? (
+                          <p className="text-xs text-sky-700">{quarter.notes}</p>
+                        ) : (
+                          <div />
+                        )}
+                        <Button
+                          size="sm"
+                          variant={reminders.includes(quarter.label) ? 'default' : 'outline'}
+                          onClick={() => toggleReminder(quarter.label)}
+                          className="gap-2"
+                        >
+                          <BellIcon className="h-4 w-4" />
+                          {reminders.includes(quarter.label) ? 'Reminder set' : 'Remind me'}
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -285,7 +336,9 @@ export function BusinessTools({
                         <h4 className="text-sm font-semibold text-slate-900">{item.name}</h4>
                         <Badge variant="outline">Due {item.dueDate}</Badge>
                       </div>
-                      {item.notes ? <p className="mt-2 text-xs text-slate-600">{item.notes}</p> : null}
+                      {item.notes ? (
+                        <p className="mt-2 text-xs text-slate-600">{item.notes}</p>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -293,8 +346,8 @@ export function BusinessTools({
             ) : null}
 
             <p className="text-xs text-slate-500">
-              Always confirm due dates in Online services for business or with your registered tax or BAS agent because the ATO
-              can grant different lodgement programs.
+              Always confirm due dates in Online services for business or with your registered tax
+              or BAS agent because the ATO can grant different lodgement programs.
             </p>
           </CardContent>
         </Card>
@@ -310,7 +363,8 @@ export function BusinessTools({
               <div>
                 <CardTitle className="text-2xl">Tax mitigation ideas</CardTitle>
                 <CardDescription>
-                  Explore conversation starters for your advisor to help manage taxable income and cash flow.
+                  Explore conversation starters for your advisor to help manage taxable income and
+                  cash flow.
                 </CardDescription>
               </div>
             </div>
@@ -319,7 +373,10 @@ export function BusinessTools({
             <p className="text-xs text-slate-500">{taxPlanning?.disclaimer}</p>
             <div className="grid gap-4 md:grid-cols-2">
               {strategies.map((strategy) => (
-                <div key={strategy.title} className="space-y-3 rounded-lg border border-emerald-200 bg-white p-4 shadow-sm">
+                <div
+                  key={strategy.title}
+                  className="space-y-3 rounded-lg border border-emerald-200 bg-white p-4 shadow-sm"
+                >
                   <div>
                     <h4 className="text-sm font-semibold text-emerald-900">{strategy.title}</h4>
                     <p className="mt-1 text-xs text-emerald-800">{strategy.summary}</p>

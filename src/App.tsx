@@ -43,11 +43,14 @@ export default function App() {
               <span className="rounded-lg bg-blue-600 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-white">
                 GSTCalc
               </span>
-              <Badge variant="outline">Up-to-date rates {lastUpdated ? new Date(lastUpdated).toLocaleDateString('en-AU') : ''}</Badge>
+              <Badge variant="outline">
+                Up-to-date rates{' '}
+                {lastUpdated ? new Date(lastUpdated).toLocaleDateString('en-AU') : ''}
+              </Badge>
             </div>
             <p className="mt-2 max-w-xl text-sm text-slate-600">
-              A desktop-first toolkit for Australian individuals and businesses to calculate GST, estimate income tax
-              and stay ahead of BAS deadlines.
+              A desktop-first toolkit for Australian individuals and businesses to calculate GST,
+              estimate income tax and stay ahead of BAS deadlines.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -55,7 +58,13 @@ export default function App() {
               GST rate {formatPercent(gstRate)}
               {gstNotes ? ` · ${gstNotes}` : ''}
             </span>
-            <Button type="button" variant="outline" size="sm" onClick={() => refresh()} className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => refresh()}
+              className="gap-2"
+            >
               <RefreshCwIcon className="h-4 w-4" /> Refresh rates
             </Button>
           </div>
@@ -63,11 +72,14 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-        {status === 'loading' ? <LoadingState message="Fetching the latest rates from the ATO..." /> : null}
+        {status === 'loading' ? (
+          <LoadingState message="Fetching the latest rates from the ATO..." />
+        ) : null}
         {error ? <ErrorState message={`Using cached data. ${error}`} /> : null}
         {stale ? (
           <Alert variant="warning">
-            Cached rates may be out of date. Refresh when you are back online to pull the latest data from the ATO.
+            Cached rates may be out of date. Refresh when you are back online to pull the latest
+            data from the ATO.
           </Alert>
         ) : null}
 
@@ -83,7 +95,9 @@ export default function App() {
             {readyForIndividual ? (
               <IncomeTaxCalculator years={financialYears} lastUpdated={lastUpdated} />
             ) : (
-              <Alert variant="warning">Income tax rates are unavailable. Try refreshing the data source.</Alert>
+              <Alert variant="warning">
+                Income tax rates are unavailable. Try refreshing the data source.
+              </Alert>
             )}
           </TabsContent>
 
@@ -99,15 +113,22 @@ export default function App() {
                 taxPlanning={taxPlanning}
               />
             ) : (
-              <Alert variant="warning">Company tax rates and penalty schedules are unavailable right now.</Alert>
+              <Alert variant="warning">
+                Company tax rates and penalty schedules are unavailable right now.
+              </Alert>
             )}
           </TabsContent>
 
           <TabsContent value="annual-tax" className="space-y-6">
             {readyForBusiness && companyRates ? (
-              <AnnualBusinessTax baseRate={companyRates.baseRateEntity} fullRate={companyRates.fullRate} />
+              <AnnualBusinessTax
+                baseRate={companyRates.baseRateEntity}
+                fullRate={companyRates.fullRate}
+              />
             ) : (
-              <Alert variant="warning">Company rate data is unavailable. Refresh the dataset to try again.</Alert>
+              <Alert variant="warning">
+                Company rate data is unavailable. Refresh the dataset to try again.
+              </Alert>
             )}
           </TabsContent>
         </Tabs>
@@ -116,8 +137,8 @@ export default function App() {
       <footer className="border-t border-slate-200 bg-white/80">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
           <p>
-            GSTCalc is not financial advice. Verify calculations with the Australian Taxation Office or a registered
-            tax agent.
+            GSTCalc is not financial advice. Verify calculations with the Australian Taxation Office
+            or a registered tax agent.
           </p>
           <p>Offline mode caches the last downloaded rate schedule for up to seven days.</p>
         </div>
@@ -125,4 +146,3 @@ export default function App() {
     </div>
   );
 }
-

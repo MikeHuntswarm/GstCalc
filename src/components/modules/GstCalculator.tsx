@@ -50,21 +50,18 @@ export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
     (value: number) => {
       setAmountInput(value.toFixed(2));
     },
-    [setAmountInput]
+    [setAmountInput],
   );
 
-  const handleCopy = useCallback(
-    async (target: Exclude<CopyTarget, null>, value: number) => {
-      try {
-        await navigator.clipboard.writeText(value.toFixed(2));
-        setCopyTarget(target);
-        setTimeout(() => setCopyTarget(null), 2000);
-      } catch (error) {
-        console.error('Clipboard copy failed', error);
-      }
-    },
-    []
-  );
+  const handleCopy = useCallback(async (target: Exclude<CopyTarget, null>, value: number) => {
+    try {
+      await navigator.clipboard.writeText(value.toFixed(2));
+      setCopyTarget(target);
+      setTimeout(() => setCopyTarget(null), 2000);
+    } catch (error) {
+      console.error('Clipboard copy failed', error);
+    }
+  }, []);
 
   return (
     <Card>
@@ -94,14 +91,14 @@ export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
           </TabsList>
           <TabsContent value="exclusive" className="mt-6">
             <p className="text-sm text-slate-600">
-              Provide an amount before GST. We will calculate the GST component and the total payable
-              including GST.
+              Provide an amount before GST. We will calculate the GST component and the total
+              payable including GST.
             </p>
           </TabsContent>
           <TabsContent value="inclusive" className="mt-6">
             <p className="text-sm text-slate-600">
-              Provide an amount that already includes GST. We will break down the GST component and the
-              ex-GST value.
+              Provide an amount that already includes GST. We will break down the GST component and
+              the ex-GST value.
             </p>
           </TabsContent>
         </Tabs>
@@ -143,8 +140,8 @@ export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
               placeholder={(defaultRate * 100).toFixed(2)}
             />
             <p className="text-xs text-slate-500">
-              Override the default GST rate to explore other scenarios (for example for wine equalisation or
-              luxury car tax adjustments).
+              Override the default GST rate to explore other scenarios (for example for wine
+              equalisation or luxury car tax adjustments).
             </p>
           </div>
         </div>
@@ -152,7 +149,9 @@ export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
         <div className="grid gap-4 rounded-lg border border-slate-200 bg-slate-50 p-6 md:grid-cols-3">
           <div className="space-y-2">
             <p className="text-xs uppercase text-slate-500">Ex-GST amount</p>
-            <p className="text-2xl font-semibold text-slate-900">{formatCurrency(result.exclusive)}</p>
+            <p className="text-2xl font-semibold text-slate-900">
+              {formatCurrency(result.exclusive)}
+            </p>
             <Button
               type="button"
               variant="ghost"
@@ -180,7 +179,9 @@ export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
           </div>
           <div className="space-y-2">
             <p className="text-xs uppercase text-slate-500">Inc-GST total</p>
-            <p className="text-2xl font-semibold text-slate-900">{formatCurrency(result.inclusive)}</p>
+            <p className="text-2xl font-semibold text-slate-900">
+              {formatCurrency(result.inclusive)}
+            </p>
             <Button
               type="button"
               variant="ghost"
@@ -195,8 +196,9 @@ export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
         </div>
 
         <Alert variant="warning">
-          Lodging your BAS late can attract Failure to Lodge penalties and General Interest Charge. Use the
-          penalty estimator in the business tools tab to understand potential costs of missing a deadline.
+          Lodging your BAS late can attract Failure to Lodge penalties and General Interest Charge.
+          Use the penalty estimator in the business tools tab to understand potential costs of
+          missing a deadline.
         </Alert>
       </CardContent>
     </Card>

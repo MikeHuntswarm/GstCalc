@@ -9,7 +9,7 @@ export interface FailureToLodgeEstimate {
 
 export function estimateFailureToLodgePenalty(
   daysLate: number,
-  schedule: PenaltySchedule['failureToLodge']
+  schedule: PenaltySchedule['failureToLodge'],
 ): FailureToLodgeEstimate {
   const safeDaysLate = Math.max(0, Math.floor(daysLate));
   const calculatedPeriods = Math.ceil(safeDaysLate / schedule.frequencyDays);
@@ -22,13 +22,15 @@ export function estimateFailureToLodgePenalty(
     daysLate: safeDaysLate,
     penaltyUnits,
     amount,
-    periodsLate
+    periodsLate,
   };
 }
 
 export function describePenaltyCap(schedule: PenaltySchedule['failureToLodge']) {
-  return `Capped at ${schedule.maxUnits} penalty units (${(schedule.maxUnits * schedule.unitValue).toLocaleString('en-AU', {
+  return `Capped at ${schedule.maxUnits} penalty units (${(
+    schedule.maxUnits * schedule.unitValue
+  ).toLocaleString('en-AU', {
     style: 'currency',
-    currency: 'AUD'
+    currency: 'AUD',
   })}) for small entities.`;
 }

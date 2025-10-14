@@ -6,11 +6,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Inter Variable"', 'system-ui', 'sans-serif']
-      }
-    }
+        sans: ['"Inter Variable"', 'system-ui', 'sans-serif'],
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;

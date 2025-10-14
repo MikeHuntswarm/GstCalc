@@ -60,7 +60,10 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
   const [passiveIncomeRatio, setPassiveIncomeRatio] = useState('');
 
   const parsedTurnover = useMemo(() => Math.max(0, parseAmount(turnover)), [turnover]);
-  const parsedTaxableIncome = useMemo(() => Math.max(0, parseAmount(taxableIncome)), [taxableIncome]);
+  const parsedTaxableIncome = useMemo(
+    () => Math.max(0, parseAmount(taxableIncome)),
+    [taxableIncome],
+  );
   const parsedPassiveIncomeRatio = useMemo(() => {
     const numeric = Number.parseFloat(passiveIncomeRatio.replace(/[^0-9.]/g, '')) || 0;
     return Math.min(100, Math.max(0, numeric));
@@ -85,14 +88,24 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
   const missingInputSummary = formatList(missingInputs);
 
   const turnoverThresholdExceeded = hasTurnoverInput && parsedTurnover > BASE_RATE_TURNOVER_CAP;
-  const passiveThresholdExceeded = hasPassiveIncomeInput && parsedPassiveIncomeRatio > PASSIVE_INCOME_MAX_PERCENT;
+  const passiveThresholdExceeded =
+    hasPassiveIncomeInput && parsedPassiveIncomeRatio > PASSIVE_INCOME_MAX_PERCENT;
 
   const qualifiesForBaseRate = useMemo(() => {
-    return parsedTurnover <= BASE_RATE_TURNOVER_CAP && parsedPassiveIncomeRatio <= PASSIVE_INCOME_MAX_PERCENT;
+    return (
+      parsedTurnover <= BASE_RATE_TURNOVER_CAP &&
+      parsedPassiveIncomeRatio <= PASSIVE_INCOME_MAX_PERCENT
+    );
   }, [parsedTurnover, parsedPassiveIncomeRatio]);
 
-  const baseRateTax = useMemo(() => parsedTaxableIncome * baseRate.rate, [parsedTaxableIncome, baseRate.rate]);
-  const fullRateTax = useMemo(() => parsedTaxableIncome * fullRate.rate, [parsedTaxableIncome, fullRate.rate]);
+  const baseRateTax = useMemo(
+    () => parsedTaxableIncome * baseRate.rate,
+    [parsedTaxableIncome, baseRate.rate],
+  );
+  const fullRateTax = useMemo(
+    () => parsedTaxableIncome * fullRate.rate,
+    [parsedTaxableIncome, fullRate.rate],
+  );
   const recommendedTax = qualifiesForBaseRate ? baseRateTax : fullRateTax;
   const recommendedRate = qualifiesForBaseRate ? baseRate.rate : fullRate.rate;
   const savingsCompared = fullRateTax - baseRateTax;
@@ -107,7 +120,9 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
     const reasons: string[] = [];
 
     if (turnoverThresholdExceeded) {
-      reasons.push(`Aggregated turnover is above the ${baseRateTurnoverCapLabel} cap for base rate entities.`);
+      reasons.push(
+        `Aggregated turnover is above the ${baseRateTurnoverCapLabel} cap for base rate entities.`,
+      );
     }
 
     if (passiveThresholdExceeded) {
@@ -115,7 +130,12 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
     }
 
     return reasons;
-  }, [turnoverThresholdExceeded, passiveThresholdExceeded, baseRateTurnoverCapLabel, passiveIncomeThresholdLabel]);
+  }, [
+    turnoverThresholdExceeded,
+    passiveThresholdExceeded,
+    baseRateTurnoverCapLabel,
+    passiveIncomeThresholdLabel,
+  ]);
 
   const eligibilityChecklist = useMemo<ChecklistItem[]>(() => {
     const items: ChecklistItem[] = [];
@@ -189,8 +209,8 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
             <div>
               <CardTitle className="text-2xl">Annual company tax estimator</CardTitle>
               <CardDescription>
-                Estimate the income tax payable on your company profits and understand how eligibility for the base rate
-                entity impacts cash flow.
+                Estimate the income tax payable on your company profits and understand how
+                eligibility for the base rate entity impacts cash flow.
               </CardDescription>
             </div>
           </div>
@@ -206,7 +226,9 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
                 value={turnover}
                 onChange={(event) => setTurnover(event.target.value)}
               />
-              <p className="text-xs text-slate-500">Include group entities connected or affiliated with your company.</p>
+              <p className="text-xs text-slate-500">
+                Include group entities connected or affiliated with your company.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="passiveIncome">Passive income %</Label>
@@ -217,7 +239,9 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
                 value={passiveIncomeRatio}
                 onChange={(event) => setPassiveIncomeRatio(event.target.value)}
               />
-              <p className="text-xs text-slate-500">Dividends, interest, rent and similar revenue as a % of total income.</p>
+              <p className="text-xs text-slate-500">
+                Dividends, interest, rent and similar revenue as a % of total income.
+              </p>
             </div>
           </div>
           <div className="space-y-2">
@@ -230,13 +254,15 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
               onChange={(event) => setTaxableIncome(event.target.value)}
             />
             <p className="text-xs text-slate-500">
-              Apply adjustments for add-backs, temporary differences and carried-forward losses first.
+              Apply adjustments for add-backs, temporary differences and carried-forward losses
+              first.
             </p>
           </div>
           <Alert className="border-violet-200 bg-violet-50 text-violet-800">
-            Base rate entities currently apply when aggregated turnover is {baseRateTurnoverCapLabel} or less and no more
-            than {passiveIncomeThresholdLabel} of income is passive. Confirm eligibility with your advisor before relying
-            on the lower rate.
+            Base rate entities currently apply when aggregated turnover is{' '}
+            {baseRateTurnoverCapLabel} or less and no more than {passiveIncomeThresholdLabel} of
+            income is passive. Confirm eligibility with your advisor before relying on the lower
+            rate.
           </Alert>
         </CardContent>
       </Card>
@@ -256,8 +282,8 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
         <CardContent className="space-y-6">
           {missingInputs.length > 0 ? (
             <Alert variant="warning">
-              Provide {missingInputSummary} to view complete company tax estimates. Placeholder values are shown until all
-              required inputs are supplied.
+              Provide {missingInputSummary} to view complete company tax estimates. Placeholder
+              values are shown until all required inputs are supplied.
             </Alert>
           ) : showBaseRateWarning ? (
             <Alert variant="warning">
@@ -270,47 +296,66 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
             </Alert>
           ) : (
             <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800">
-              Your entries currently meet the base rate entity criteria. Confirm details with your advisor before lodging.
+              Your entries currently meet the base rate entity criteria. Confirm details with your
+              advisor before lodging.
             </Alert>
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div
               className={`rounded-lg border p-4 ${
-                qualifiesForBaseRate ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white shadow-sm'
+                qualifiesForBaseRate
+                  ? 'border-emerald-300 bg-emerald-50'
+                  : 'border-slate-200 bg-white shadow-sm'
               }`}
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-emerald-900">Base rate entity</p>
-                <Badge variant={qualifiesForBaseRate ? 'default' : 'outline'}>Rate {formatPercent(baseRate.rate)}</Badge>
+                <Badge variant={qualifiesForBaseRate ? 'default' : 'outline'}>
+                  Rate {formatPercent(baseRate.rate)}
+                </Badge>
               </div>
-              <p className="mt-3 text-2xl font-semibold text-emerald-900">{formatCurrency(baseRateTax)}</p>
-              <p className="mt-1 text-xs text-emerald-800">Applies to eligible companies. {baseRate.criteria}</p>
+              <p className="mt-3 text-2xl font-semibold text-emerald-900">
+                {formatCurrency(baseRateTax)}
+              </p>
+              <p className="mt-1 text-xs text-emerald-800">
+                Applies to eligible companies. {baseRate.criteria}
+              </p>
             </div>
             <div
               className={`rounded-lg border p-4 ${
-                qualifiesForBaseRate ? 'border-slate-200 bg-white shadow-sm' : 'border-rose-200 bg-rose-50'
+                qualifiesForBaseRate
+                  ? 'border-slate-200 bg-white shadow-sm'
+                  : 'border-rose-200 bg-rose-50'
               }`}
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-rose-900">Full company rate</p>
-                <Badge variant={!qualifiesForBaseRate ? 'default' : 'outline'}>Rate {formatPercent(fullRate.rate)}</Badge>
+                <Badge variant={!qualifiesForBaseRate ? 'default' : 'outline'}>
+                  Rate {formatPercent(fullRate.rate)}
+                </Badge>
               </div>
-              <p className="mt-3 text-2xl font-semibold text-rose-900">{formatCurrency(fullRateTax)}</p>
+              <p className="mt-3 text-2xl font-semibold text-rose-900">
+                {formatCurrency(fullRateTax)}
+              </p>
               <p className="mt-1 text-xs text-rose-800">{fullRate.criteria}</p>
             </div>
           </div>
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
             <p>
-              Recommended rate: <span className="font-semibold">{formatPercent(recommendedRate)}</span>{' '}
-              ({qualifiesForBaseRate ? 'base rate entity' : 'full company rate'})
+              Recommended rate:{' '}
+              <span className="font-semibold">{formatPercent(recommendedRate)}</span> (
+              {qualifiesForBaseRate ? 'base rate entity' : 'full company rate'})
             </p>
             <p className="mt-2">
-              Estimated company tax payable: <span className="font-semibold">{formatCurrency(recommendedTax)}</span>
+              Estimated company tax payable:{' '}
+              <span className="font-semibold">{formatCurrency(recommendedTax)}</span>
             </p>
             {parsedTaxableIncome > 0 ? (
-              <p className="mt-2 text-xs text-slate-600">After-tax profit estimate: {formatCurrency(afterTaxProfit)}</p>
+              <p className="mt-2 text-xs text-slate-600">
+                After-tax profit estimate: {formatCurrency(afterTaxProfit)}
+              </p>
             ) : null}
             {isReadyForResults && parsedTaxableIncome > 0 ? (
               <p className="mt-2 text-xs text-slate-600">
@@ -319,8 +364,10 @@ export function AnnualBusinessTax({ baseRate, fullRate }: AnnualBusinessTaxProps
             ) : null}
             {parsedTaxableIncome > 0 && Math.abs(savingsCompared) > 0 ? (
               <p className="mt-2 text-xs text-slate-600">
-                {qualifiesForBaseRate ? 'Estimated savings vs full rate' : 'Additional tax versus base rate'}:{' '}
-                {formatCurrency(Math.abs(savingsCompared))}
+                {qualifiesForBaseRate
+                  ? 'Estimated savings vs full rate'
+                  : 'Additional tax versus base rate'}
+                : {formatCurrency(Math.abs(savingsCompared))}
                 {fullRateTax > 0 ? ` (${formatPercent(relativeSavingsToFullRate)})` : ''}.
               </p>
             ) : null}

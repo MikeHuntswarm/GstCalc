@@ -11,7 +11,7 @@ export function formatCurrency(value: number, options: Intl.NumberFormatOptions 
     currency: 'AUD',
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
-    ...options
+    ...options,
   });
 
   return formatter.format(value);
@@ -22,7 +22,7 @@ export function formatPercent(value: number, options: Intl.NumberFormatOptions =
     style: 'percent',
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
-    ...options
+    ...options,
   });
 
   return formatter.format(value);

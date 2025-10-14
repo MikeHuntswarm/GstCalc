@@ -3,8 +3,8 @@ import { calculateIncomeTax } from './incomeTax';
 import type { FinancialYearRates } from '@/types/ato';
 import atoRates from '../../../data/ato-rates.json';
 
-const financialYears = (atoRates as { individual: { financialYears: FinancialYearRates[] } }).individual
-  .financialYears;
+const financialYears = (atoRates as { individual: { financialYears: FinancialYearRates[] } })
+  .individual.financialYears;
 
 function getRates(year: string): FinancialYearRates {
   const match = financialYears.find((fy) => fy.year === year);
@@ -27,8 +27,8 @@ describe('calculateIncomeTax threshold handling', () => {
         { income: 18_201, expectedTax: 0.16 },
         { income: 45_001, expectedTax: 4_288.3 },
         { income: 135_001, expectedTax: 31_288.37 },
-        { income: 190_001, expectedTax: 51_638.45 }
-      ]
+        { income: 190_001, expectedTax: 51_638.45 },
+      ],
     },
     {
       year: '2023-24',
@@ -36,9 +36,9 @@ describe('calculateIncomeTax threshold handling', () => {
         { income: 18_201, expectedTax: 0.19 },
         { income: 45_001, expectedTax: 5_092.325 },
         { income: 120_001, expectedTax: 29_467.37 },
-        { income: 180_001, expectedTax: 51_667.45 }
-      ]
-    }
+        { income: 180_001, expectedTax: 51_667.45 },
+      ],
+    },
   ];
 
   for (const { year, cases } of scenarios) {

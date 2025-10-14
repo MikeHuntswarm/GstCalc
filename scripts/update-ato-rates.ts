@@ -2,7 +2,8 @@ import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const PRIMARY_SOURCE = 'https://gstcalc.github.io/data/ato-rates.json';
-const RAW_GITHUB_FALLBACK = 'https://raw.githubusercontent.com/GstCalc/GstCalc/main/data/ato-rates.json';
+const RAW_GITHUB_FALLBACK =
+  'https://raw.githubusercontent.com/GstCalc/GstCalc/main/data/ato-rates.json';
 const FETCH_TIMEOUT_MS = Number.parseInt(process.env.ATO_RATES_TIMEOUT ?? '15000', 10);
 const ACCESS_TOKEN = process.env.ATO_RATES_ACCESS_TOKEN ?? process.env.GITHUB_TOKEN;
 const USER_AGENT = process.env.ATO_RATES_USER_AGENT ?? 'GSTCalcRatesUpdater/1.0';
@@ -22,7 +23,15 @@ function assertValidPayload(payload: RatePayload) {
     throw new Error('ATO rate payload was empty');
   }
 
-  const requiredKeys: (keyof RatePayload)[] = ['metadata', 'gst', 'individual', 'company', 'penalties', 'lodgements', 'taxPlanning'];
+  const requiredKeys: (keyof RatePayload)[] = [
+    'metadata',
+    'gst',
+    'individual',
+    'company',
+    'penalties',
+    'lodgements',
+    'taxPlanning',
+  ];
   for (const key of requiredKeys) {
     if (!(key in payload)) {
       throw new Error(`ATO rate payload missing key: ${key}`);
@@ -52,7 +61,7 @@ async function loadExisting(filePath: string) {
 function resolveHeaders(url: string) {
   const headers: Record<string, string> = {
     Accept: 'application/json',
-    'User-Agent': USER_AGENT
+    'User-Agent': USER_AGENT,
   };
 
   let hostname: string | undefined;
@@ -62,7 +71,11 @@ function resolveHeaders(url: string) {
     hostname = undefined;
   }
 
-  if (ACCESS_TOKEN && hostname && (hostname.includes('githubusercontent.com') || hostname.includes('github.com'))) {
+  if (
+    ACCESS_TOKEN &&
+    hostname &&
+    (hostname.includes('githubusercontent.com') || hostname.includes('github.com'))
+  ) {
     headers.Authorization = `Bearer ${ACCESS_TOKEN}`;
   }
 
@@ -76,7 +89,7 @@ async function fetchWithTimeout(url: string) {
   try {
     const response = await fetch(url, {
       headers: resolveHeaders(url),
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     return response;
@@ -111,7 +124,9 @@ async function tryFetch(url: string) {
   const response = await fetchWithTimeout(url);
 
   if (!response.ok) {
-    throw new Error(`Failed to download rates from ${url}: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to download rates from ${url}: ${response.status} ${response.statusText}`,
+    );
   }
 
   const payload = (await response.json()) as RatePayload;
@@ -172,4 +187,3 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-

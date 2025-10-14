@@ -26,7 +26,7 @@ export function IncomeTaxCalculator({ years, lastUpdated }: IncomeTaxCalculatorP
 
   const yearData = useMemo(
     () => years.find((year) => year.year === selectedYear) ?? years[0],
-    [selectedYear, years]
+    [selectedYear, years],
   );
 
   const parsedIncome = useMemo(() => {
@@ -52,7 +52,8 @@ export function IncomeTaxCalculator({ years, lastUpdated }: IncomeTaxCalculatorP
           <div>
             <CardTitle className="text-2xl">PAYG Income Tax</CardTitle>
             <CardDescription>
-              Estimate your Australian individual income tax for different financial years and pay frequencies.
+              Estimate your Australian individual income tax for different financial years and pay
+              frequencies.
             </CardDescription>
           </div>
         </div>
@@ -71,13 +72,17 @@ export function IncomeTaxCalculator({ years, lastUpdated }: IncomeTaxCalculatorP
               ))}
             </select>
           </div>
-          <Badge variant="outline">Rates updated {new Date(lastUpdated).toLocaleDateString('en-AU')}</Badge>
+          <Badge variant="outline">
+            Rates updated {new Date(lastUpdated).toLocaleDateString('en-AU')}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-8">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="income">Taxable income ({frequency === 'annual' ? 'annual' : 'weekly'})</Label>
+            <Label htmlFor="income">
+              Taxable income ({frequency === 'annual' ? 'annual' : 'weekly'})
+            </Label>
             <Input
               id="income"
               inputMode="decimal"
@@ -134,33 +139,45 @@ export function IncomeTaxCalculator({ years, lastUpdated }: IncomeTaxCalculatorP
             <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-6">
               <div>
                 <p className="text-xs uppercase text-slate-500">Estimated annual tax</p>
-                <p className="text-3xl font-semibold text-slate-900">{formatCurrency(breakdown.annualTax)}</p>
+                <p className="text-3xl font-semibold text-slate-900">
+                  {formatCurrency(breakdown.annualTax)}
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-xs uppercase text-slate-500">Net annual income</p>
-                  <p className="font-semibold text-slate-900">{formatCurrency(breakdown.netAnnualIncome)}</p>
+                  <p className="font-semibold text-slate-900">
+                    {formatCurrency(breakdown.netAnnualIncome)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-slate-500">Net weekly income</p>
-                  <p className="font-semibold text-slate-900">{formatCurrency(breakdown.weeklyNetIncome)}</p>
+                  <p className="font-semibold text-slate-900">
+                    {formatCurrency(breakdown.weeklyNetIncome)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-slate-500">Weekly PAYG withholding</p>
-                  <p className="font-semibold text-slate-900">{formatCurrency(breakdown.weeklyTax)}</p>
+                  <p className="font-semibold text-slate-900">
+                    {formatCurrency(breakdown.weeklyTax)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-slate-500">Average tax rate</p>
-                  <p className="font-semibold text-slate-900">{formatPercent(breakdown.averageRate)}</p>
+                  <p className="font-semibold text-slate-900">
+                    {formatPercent(breakdown.averageRate)}
+                  </p>
                 </div>
               </div>
             </div>
             <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-inner">
               <h4 className="text-lg font-semibold text-slate-900">How your tax is calculated</h4>
               <p className="text-sm text-slate-600">
-                Your income sits in the <strong>{formatPercent(breakdown.marginalRate)}</strong> marginal tax bracket.
-                The calculation starts with base tax of {formatCurrency(breakdown.bracket.baseTax)} once your income exceeds
-                {formatCurrency(breakdown.bracket.threshold)}, then applies the marginal rate to the remaining amount.
+                Your income sits in the <strong>{formatPercent(breakdown.marginalRate)}</strong>{' '}
+                marginal tax bracket. The calculation starts with base tax of{' '}
+                {formatCurrency(breakdown.bracket.baseTax)} once your income exceeds
+                {formatCurrency(breakdown.bracket.threshold)}, then applies the marginal rate to the
+                remaining amount.
               </p>
               <ul className="space-y-2 text-sm text-slate-600">
                 {yearData.taxBrackets.map((bracket, index) => {
@@ -178,7 +195,9 @@ export function IncomeTaxCalculator({ years, lastUpdated }: IncomeTaxCalculatorP
                           : 'border-transparent bg-slate-100 text-slate-700'
                       }`}
                     >
-                      <span className="text-xs font-semibold uppercase tracking-wide">{rangeLabel}</span>
+                      <span className="text-xs font-semibold uppercase tracking-wide">
+                        {rangeLabel}
+                      </span>
                       <span className="text-sm font-medium">{formatPercent(bracket.rate)}</span>
                     </li>
                   );
@@ -187,7 +206,9 @@ export function IncomeTaxCalculator({ years, lastUpdated }: IncomeTaxCalculatorP
             </div>
           </div>
         ) : (
-          <Alert variant="destructive">Unable to load tax brackets for the selected financial year.</Alert>
+          <Alert variant="destructive">
+            Unable to load tax brackets for the selected financial year.
+          </Alert>
         )}
       </CardContent>
     </Card>

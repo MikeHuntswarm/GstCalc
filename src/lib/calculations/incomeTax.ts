@@ -47,7 +47,7 @@ export function calculateIncomeTax(income: number, year: FinancialYearRates): In
     netAnnualIncome,
     weeklyTax,
     weeklyNetIncome,
-    bracket
+    bracket,
   };
 }
 

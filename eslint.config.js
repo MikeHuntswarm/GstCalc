@@ -8,12 +8,12 @@ const __dirname = path.dirname(__filename);
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended
+  recommendedConfig: js.configs.recommended,
 });
 
 export default [
   {
-    ignores: ['dist/**', 'dist-electron/**', 'release/**', 'node_modules/**']
+    ignores: ['dist/**', 'dist-electron/**', 'release/**', 'node_modules/**'],
   },
   ...compat.extends(
     'eslint:recommended',
@@ -21,25 +21,25 @@ export default [
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:jsx-a11y/recommended',
-    'prettier'
+    'prettier',
   ),
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 2020,
-        sourceType: 'module'
-      }
+        sourceType: 'module',
+      },
     },
     settings: {
       react: {
-        version: 'detect'
-      }
+        version: 'detect',
+      },
     },
     rules: {
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
-    }
-  }
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    },
+  },
 ];

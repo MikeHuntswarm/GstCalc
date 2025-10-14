@@ -27,7 +27,7 @@ export function calculateFromExclusive(amount: number, rate: number): GstResult 
   return {
     exclusive: roundCurrency(amount),
     gst,
-    inclusive: roundCurrency(amount + gst)
+    inclusive: roundCurrency(amount + gst),
   };
 }
 
@@ -37,11 +37,15 @@ export function calculateFromInclusive(amount: number, rate: number): GstResult 
   return {
     exclusive,
     gst,
-    inclusive: roundCurrency(amount)
+    inclusive: roundCurrency(amount),
   };
 }
 
-export function determineGstFromAmount(amount: number, rate: number, mode: 'exclusive' | 'inclusive'): GstResult {
+export function determineGstFromAmount(
+  amount: number,
+  rate: number,
+  mode: 'exclusive' | 'inclusive',
+): GstResult {
   return mode === 'exclusive'
     ? calculateFromExclusive(amount, rate)
     : calculateFromInclusive(amount, rate);

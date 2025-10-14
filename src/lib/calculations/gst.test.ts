@@ -8,7 +8,7 @@ describe('GST calculations', () => {
     expect(result).toEqual({
       exclusive: 123.46,
       gst: 12.35,
-      inclusive: 135.81
+      inclusive: 135.81,
     });
   });
 
@@ -18,7 +18,7 @@ describe('GST calculations', () => {
     expect(result).toEqual({
       exclusive: -12.35,
       gst: -1.23,
-      inclusive: -13.58
+      inclusive: -13.58,
     });
   });
 
@@ -28,7 +28,7 @@ describe('GST calculations', () => {
     expect(result).toEqual({
       exclusive: -110,
       gst: -11.01,
-      inclusive: -121.01
+      inclusive: -121.01,
     });
   });
 

@@ -30,14 +30,14 @@ The development command launches Vite and the Electron shell together. The rende
 
 ### Useful npm scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Run Vite + Electron in development with hot reload. |
-| `npm run build` | Build the renderer (Vite) and Electron main process. |
-| `npm run package` | Build production bundles and create a Windows installer via electron-builder. |
-| `npm run lint` | Lint the project with ESLint (TypeScript + React rules). |
-| `npm run typecheck` | Run TypeScript type checking without emitting files. |
-| `npm run update:rates` | Fetch the latest ATO rates JSON and sync to `data/` + `public/`. |
+| Script                 | Purpose                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `npm run dev`          | Run Vite + Electron in development with hot reload.                           |
+| `npm run build`        | Build the renderer (Vite) and Electron main process.                          |
+| `npm run package`      | Build production bundles and create a Windows installer via electron-builder. |
+| `npm run lint`         | Lint the project with ESLint (TypeScript + React rules).                      |
+| `npm run typecheck`    | Run TypeScript type checking without emitting files.                          |
+| `npm run update:rates` | Fetch the latest ATO rates JSON and sync to `data/` + `public/`.              |
 
 ## Project structure
 

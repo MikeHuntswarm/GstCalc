@@ -38,7 +38,7 @@ function writeCache(data: AtoRates) {
   try {
     const payload: CachedRates = {
       timestamp: Date.now(),
-      data
+      data,
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
   } catch (error) {
@@ -49,8 +49,8 @@ function writeCache(data: AtoRates) {
 async function fetchJson(url: string): Promise<AtoRates> {
   const response = await fetch(url, {
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   });
 
   if (!response.ok) {
@@ -113,7 +113,7 @@ export function useAtoRates() {
       setError(lastError instanceof Error ? lastError.message : 'Unable to load rates');
       setStale(true);
     },
-    [cached, data, stale]
+    [cached, data, stale],
   );
 
   useEffect(() => {
@@ -141,6 +141,6 @@ export function useAtoRates() {
     status,
     error,
     stale,
-    refresh
+    refresh,
   } as const;
 }

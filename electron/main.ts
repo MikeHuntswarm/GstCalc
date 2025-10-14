@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, Notification } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -27,8 +27,8 @@ async function createMainWindow() {
       preload: resolvePreload(),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
-    }
+      sandbox: false,
+    },
   });
 
   mainWindow.once('ready-to-show', () => {
@@ -76,10 +76,13 @@ app.whenReady().then(async () => {
   await createMainWindow();
   setupAutoUpdates();
 
+  ipcMain.on('show-notification', (event, title, body) => {
+    new Notification({ title, body }).show();
+  });
+
   app.on('activate', async () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       await createMainWindow();
     }
   });
 });
-

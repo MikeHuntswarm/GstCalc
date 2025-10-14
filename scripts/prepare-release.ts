@@ -187,7 +187,17 @@ function writePackageLock(filePath: string, newVersion: string) {
 
 function findLastVersionCommit(repoRoot: string, version: string): string | null {
   const pattern = `"version": "${version}"`;
-  const result = runCommand(repoRoot, ['git', 'log', '-n', '1', '--pretty=format:%H', '-G', pattern, '--', 'package.json']);
+  const result = runCommand(repoRoot, [
+    'git',
+    'log',
+    '-n',
+    '1',
+    '--pretty=format:%H',
+    '-G',
+    pattern,
+    '--',
+    'package.json',
+  ]);
   return result.trim() ? result.trim() : null;
 }
 
@@ -210,7 +220,12 @@ function normalizeMultiline(value?: string): string | undefined {
   if (!value) {
     return undefined;
   }
-  const normalized = value.replace(/\r\n/g, '\n').split('\n').map((line) => line.trimEnd()).join('\n').trim();
+  const normalized = value
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n')
+    .trim();
   return normalized.length ? normalized : undefined;
 }
 
@@ -239,7 +254,8 @@ function updateChangelog(
   }
 
   if (!changelog.trim()) {
-    changelog = '# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n';
+    changelog =
+      '# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n';
   } else if (!changelog.trimStart().startsWith('# Changelog')) {
     changelog = `# Changelog\n\n${changelog.trimStart()}\n\n`;
   }

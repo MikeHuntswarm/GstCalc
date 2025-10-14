@@ -13,6 +13,9 @@ export function Alert({ className, variant = 'default', ...props }: AlertProps) 
         : 'border-slate-200 bg-slate-50 text-slate-900';
 
   return (
-    <div className={cn('rounded-lg border px-4 py-3 text-sm leading-relaxed', variantClass, className)} {...props} />
+    <div
+      className={cn('rounded-lg border px-4 py-3 text-sm leading-relaxed', variantClass, className)}
+      {...props}
+    />
   );
 }
