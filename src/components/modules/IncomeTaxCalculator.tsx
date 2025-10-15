@@ -8,18 +8,19 @@ import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { formatCurrency, formatPercent } from '@/lib/utils';
 import { calculateIncomeTax } from '@/lib/calculations/incomeTax';
-import type { FinancialYearRates } from '@/types/ato';
-
-interface IncomeTaxCalculatorProps {
-  years: FinancialYearRates[];
-  lastUpdated: string;
-}
+import { useAtoStore } from '@/store/ato';
 
 type Frequency = 'annual' | 'weekly';
 
 const QUICK_AMOUNTS = [60000, 85000, 120000];
 
-export function IncomeTaxCalculator({ years, lastUpdated }: IncomeTaxCalculatorProps) {
+export function IncomeTaxCalculator() {
+  const {
+    data: atoData,
+  } = useAtoStore();
+  const years = atoData?.individual.financialYears ?? [];
+  const lastUpdated = atoData?.metadata.lastUpdated ?? new Date().toISOString();
+
   const [selectedYear, setSelectedYear] = useState(years[0]?.year ?? '');
   const [frequency, setFrequency] = useState<Frequency>('annual');
   const [incomeInput, setIncomeInput] = useState('');

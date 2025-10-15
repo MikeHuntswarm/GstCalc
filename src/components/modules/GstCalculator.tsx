@@ -9,17 +9,19 @@ import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatPercent } from '@/lib/utils';
 import { determineGstFromAmount } from '@/lib/calculations/gst';
-
-interface GstCalculatorProps {
-  defaultRate: number;
-  notes?: string;
-}
+import { useAtoStore } from '@/store/ato';
 
 type Mode = 'exclusive' | 'inclusive';
 
 type CopyTarget = 'exclusive' | 'gst' | 'inclusive' | null;
 
-export function GstCalculator({ defaultRate, notes }: GstCalculatorProps) {
+export function GstCalculator() {
+  const {
+    data: atoData,
+  } = useAtoStore();
+  const defaultRate = atoData?.gst.standardRate ?? 0.1;
+  const notes = atoData?.gst.notes;
+
   const [mode, setMode] = useState<Mode>('exclusive');
   const [amountInput, setAmountInput] = useState('');
   const [rateInput, setRateInput] = useState((defaultRate * 100).toFixed(2));

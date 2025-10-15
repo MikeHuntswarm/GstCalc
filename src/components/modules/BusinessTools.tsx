@@ -14,32 +14,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { formatCurrency, formatPercent } from '@/lib/utils';
-import type { CompanyRate, PenaltySchedule, LodgementSchedule, TaxPlanning } from '@/types/ato';
 import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
 import { sendNotification } from '@/lib/notifications';
-
-interface BusinessToolsProps {
-  baseRate: CompanyRate;
-  fullRate: CompanyRate;
-  penalties: PenaltySchedule;
-  gstRate?: number;
-  lodgements?: LodgementSchedule;
-  taxPlanning?: TaxPlanning;
-}
+import { useAtoStore } from '@/store/ato';
 
 interface Reminder {
   label: string;
   dueDate: string;
 }
 
-export function BusinessTools({
-  baseRate,
-  fullRate,
-  penalties,
-  gstRate = 0.1,
-  lodgements,
-  taxPlanning,
-}: BusinessToolsProps) {
+export function BusinessTools() {
+  const {
+    data: atoData,
+  } = useAtoStore();
+  const baseRate = atoData?.company.baseRateEntity;
+  const fullRate = atoData?.company.fullRate;
+  const penalties = atoData?.penalties;
+  const gstRate = atoData?.gst.standardRate ?? 0.1;
+  const lodgements = atoData?.lodgements;
+  const taxPlanning = atoData?.taxPlanning;
+
   const [sales, setSales] = useState('');
   const [gstCollected, setGstCollected] = useState('');
   const [gstCredits, setGstCredits] = useState('');
@@ -68,10 +62,12 @@ export function BusinessTools({
     () => parsedGstCollected - parsedGstCredits,
     [parsedGstCollected, parsedGstCredits],
   );
-  const ftlEstimate = useMemo(
-    () => estimateFailureToLodgePenalty(parsedDaysLate, penalties.failureToLodge),
-    [parsedDaysLate, penalties.failureToLodge],
-  );
+  const ftlEstimate = useMemo(() => {
+    if (!penalties) {
+      return { penaltyUnits: 0, amount: 0, periodsLate: 0 };
+    }
+    return estimateFailureToLodgePenalty(parsedDaysLate, penalties.failureToLodge);
+  }, [parsedDaysLate, penalties]);
 
   const basQuarters = lodgements?.basQuarters ?? [];
   const annualObligations = lodgements?.annualObligations ?? [];
@@ -93,6 +89,10 @@ export function BusinessTools({
       );
     }
   };
+
+  if (!baseRate || !fullRate || !penalties) {
+    return null;
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">

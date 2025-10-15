@@ -18,6 +18,8 @@ export interface GstRates {
 export interface CompanyRate {
   rate: number;
   criteria: string;
+  baseRateTurnoverCap?: number;
+  passiveIncomeMaxPercent?: number;
 }
 
 export interface PenaltySchedule {
@@ -62,7 +64,7 @@ export interface TaxPlanning {
   strategies: TaxStrategy[];
 }
 
-export interface AtoRates {
+export interface AtoData {
   metadata: {
     source: string;
     lastUpdated: string;

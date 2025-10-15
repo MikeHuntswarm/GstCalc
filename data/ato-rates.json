@@ -36,7 +36,9 @@
   "company": {
     "baseRateEntity": {
       "rate": 0.25,
-      "criteria": "Aggregated turnover below $50 million and no more than 80% passive income."
+      "criteria": "Aggregated turnover below $50 million and no more than 80% passive income.",
+      "baseRateTurnoverCap": 50000000,
+      "passiveIncomeMaxPercent": 80
     },
     "fullRate": {
       "rate": 0.3,

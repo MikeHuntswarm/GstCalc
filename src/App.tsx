@@ -8,9 +8,10 @@ import { GstCalculator } from '@/components/modules/GstCalculator';
 import { IncomeTaxCalculator } from '@/components/modules/IncomeTaxCalculator';
 import { BusinessTools } from '@/components/modules/BusinessTools';
 import { AnnualBusinessTax } from '@/components/modules/AnnualBusinessTax';
-import { useAtoRates } from '@/hooks/useAtoRates';
+import { useAtoStore } from '@/store/ato';
 import { formatPercent } from '@/lib/utils';
 import { sendNotification } from '@/lib/notifications';
+import { parse, differenceInCalendarDays } from 'date-fns';
 
 interface Reminder {
   label: string;
@@ -26,7 +27,18 @@ function ErrorState({ message }: { message: string }) {
 }
 
 export default function App() {
-  const { data, status, error, stale, refresh } = useAtoRates();
+  const {
+    data,
+    status,
+    error,
+    stale,
+    fetchAtoRates,
+    refresh,
+  } = useAtoStore();
+
+  useEffect(() => {
+    fetchAtoRates();
+  }, [fetchAtoRates]);
 
   useEffect(() => {
     const storedReminders = localStorage.getItem('gstcalc-reminders');
@@ -35,27 +47,14 @@ export default function App() {
       const now = new Date();
 
       reminders.forEach((reminder) => {
-        const dueDate = new Date(reminder.dueDate);
-        if (isNaN(dueDate.getTime())) {
-          // Attempt to parse dates like "28 October"
-          const parsedDate = new Date(`${reminder.dueDate} ${now.getFullYear()}`);
-          if (!isNaN(parsedDate.getTime())) {
-            dueDate.setDate(parsedDate.getDate());
-            dueDate.setMonth(parsedDate.getMonth());
-            dueDate.setFullYear(parsedDate.getFullYear());
-          }
-        }
+        const dueDate = parse(reminder.dueDate, 'd MMMM yyyy', new Date());
+        const daysUntilDue = differenceInCalendarDays(dueDate, now);
 
-        if (!isNaN(dueDate.getTime())) {
-          const timeDiff = dueDate.getTime() - now.getTime();
-          const daysUntilDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-          if (daysUntilDue > 0 && daysUntilDue <= 7) {
-            sendNotification(
-              'Upcoming BAS Lodgement',
-              `Your ${reminder.label} is due in ${daysUntilDue} days.`,
-            );
-          }
+        if (daysUntilDue > 0 && daysUntilDue <= 7) {
+          sendNotification(
+            'Upcoming BAS Lodgement',
+            `Your ${reminder.label} is due in ${daysUntilDue} days.`,
+          );
         }
       });
     }
@@ -67,8 +66,6 @@ export default function App() {
   const lastUpdated = data?.metadata.lastUpdated ?? new Date().toISOString();
   const companyRates = data?.company;
   const penalties = data?.penalties;
-  const lodgements = data?.lodgements;
-  const taxPlanning = data?.taxPlanning;
 
   const readyForIndividual = financialYears.length > 0;
   const readyForBusiness = Boolean(companyRates && penalties);
@@ -130,9 +127,9 @@ export default function App() {
           </TabsList>
 
           <TabsContent value="individual" className="space-y-6">
-            <GstCalculator defaultRate={gstRate} notes={gstNotes} />
+            <GstCalculator />
             {readyForIndividual ? (
-              <IncomeTaxCalculator years={financialYears} lastUpdated={lastUpdated} />
+              <IncomeTaxCalculator />
             ) : (
               <Alert variant="warning">
                 Income tax rates are unavailable. Try refreshing the data source.
@@ -141,16 +138,9 @@ export default function App() {
           </TabsContent>
 
           <TabsContent value="business" className="space-y-6">
-            <GstCalculator defaultRate={gstRate} notes={gstNotes} />
+            <GstCalculator />
             {readyForBusiness && companyRates && penalties ? (
-              <BusinessTools
-                baseRate={companyRates.baseRateEntity}
-                fullRate={companyRates.fullRate}
-                penalties={penalties}
-                gstRate={gstRate}
-                lodgements={lodgements}
-                taxPlanning={taxPlanning}
-              />
+              <BusinessTools />
             ) : (
               <Alert variant="warning">
                 Company tax rates and penalty schedules are unavailable right now.
