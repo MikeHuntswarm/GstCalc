@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CalculatorIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,19 @@ export function IncomeTaxCalculator() {
   const [selectedYear, setSelectedYear] = useState(years[0]?.year ?? '');
   const [frequency, setFrequency] = useState<Frequency>('annual');
   const [incomeInput, setIncomeInput] = useState('');
+
+  useEffect(() => {
+    if (years.length === 0) {
+      return;
+    }
+
+    setSelectedYear((current) => {
+      if (current && years.some((year) => year.year === current)) {
+        return current;
+      }
+      return years[0].year;
+    });
+  }, [years]);
 
   const yearData = useMemo(
     () => years.find((year) => year.year === selectedYear) ?? years[0],
