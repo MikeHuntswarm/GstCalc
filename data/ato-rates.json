@@ -31,6 +31,31 @@
           { "threshold": 180001, "baseTax": 51667, "rate": 0.45 }
         ]
       }
+    ],
+    "medicare": {
+      "levyRate": 0.02,
+      "lowIncomeThreshold": 26000,
+      "taperRate": 0.1,
+      "familyThreshold": 43767,
+      "notes": "Levy phases in at 10% of taxable income above the threshold until it reaches 2% of taxable income. Additional thresholds apply for families and seniors."
+    },
+    "offsets": [
+      {
+        "name": "Low Income Tax Offset (LITO)",
+        "description": "Up to $700 for incomes up to $37,500, reducing progressively to nil at $66,667.",
+        "maxAmount": 700,
+        "incomeLimit": 66667
+      },
+      {
+        "name": "Low and Middle Income Tax Offset (LMITO)",
+        "description": "Currently legislated as nil for 2024-25. Retained for historical comparisons.",
+        "maxAmount": 0
+      },
+      {
+        "name": "Senior Australians and Pensioners Tax Offset",
+        "description": "Available subject to eligibility tests and income limits that vary by status. Refer to tax agent for personalised assessment.",
+        "maxAmount": 0
+      }
     ]
   },
   "company": {
@@ -54,6 +79,39 @@
     },
     "generalInterestCharge": {
       "description": "General Interest Charge (GIC) accrues on outstanding tax debts on a daily compounding basis. The rate is updated quarterly based on the 90-day bank bill rate plus a premium."
+    }
+  },
+  "smallBusiness": {
+    "instantAssetWriteOff": {
+      "threshold": 20000,
+      "effectivePeriod": "1 July 2023 to 30 June 2025",
+      "eligibility": "Aggregated turnover under $10 million and assets first used or installed ready for use within the eligible window.",
+      "notes": "Assets costing more than the threshold must be placed into the small business pool."
+    },
+    "simplifiedDepreciation": {
+      "threshold": 10000000,
+      "firstYearRate": 0.15,
+      "subsequentRate": 0.30,
+      "eligibility": "Available to small businesses using the simplified depreciation rules with aggregated turnover under $10 million.",
+      "notes": "When the closing pool balance falls below the instant asset write-off threshold it can be written off in full."
+    },
+    "reminder": "Temporary $20,000 instant asset write-off ends 30 June 2025 unless extended by Parliament."
+  },
+  "interestRates": {
+    "generalInterestCharge": {
+      "description": "General Interest Charge is applied to tax debts daily using compounding interest. Rates change each quarter based on the 90-day bank bill rate plus a 7 percentage point uplift.",
+      "quarterlyRates": [
+        { "label": "July - September 2024", "rate": 0.1173, "effectiveFrom": "2024-07-01", "effectiveTo": "2024-09-30" },
+        { "label": "October - December 2024", "rate": 0.1168, "effectiveFrom": "2024-10-01", "effectiveTo": "2024-12-31" },
+        { "label": "January - March 2025", "rate": 0.1165, "effectiveFrom": "2025-01-01", "effectiveTo": "2025-03-31" }
+      ]
+    },
+    "benchmarkInterest": {
+      "description": "Division 7A benchmark interest rate applies to shareholder or associate loans to avoid deemed dividends.",
+      "frankingNotes": "Use the benchmark rate to set minimum yearly repayments on complying Division 7A loans.",
+      "quarterlyRates": [
+        { "label": "2024-25 income year", "rate": 0.0872, "effectiveFrom": "2024-07-01", "effectiveTo": "2025-06-30" }
+      ]
     }
   }
 }

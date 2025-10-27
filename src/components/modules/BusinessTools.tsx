@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   AlertTriangleIcon,
   Building2Icon,
@@ -6,6 +6,8 @@ import {
   CalendarClockIcon,
   LightbulbIcon,
   BellIcon,
+  PackageCheckIcon,
+  LineChartIcon,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +35,8 @@ export function BusinessTools() {
   const gstRate = atoData?.gst.standardRate ?? 0.1;
   const lodgements = atoData?.lodgements;
   const taxPlanning = atoData?.taxPlanning;
+  const smallBusiness = atoData?.smallBusiness;
+  const interestRates = atoData?.interestRates;
 
   const [sales, setSales] = useState('');
   const [gstCollected, setGstCollected] = useState('');
@@ -72,6 +76,32 @@ export function BusinessTools() {
   const basQuarters = lodgements?.basQuarters ?? [];
   const annualObligations = lodgements?.annualObligations ?? [];
   const strategies = taxPlanning?.strategies ?? [];
+  const instantAsset = smallBusiness?.instantAssetWriteOff;
+  const simplifiedDepreciation = smallBusiness?.simplifiedDepreciation;
+  const gicRates = interestRates?.generalInterestCharge.quarterlyRates ?? [];
+  const benchmarkRates = interestRates?.benchmarkInterest?.quarterlyRates ?? [];
+
+  const upcomingGic = useMemo(() => {
+    if (gicRates.length === 0) {
+      return null;
+    }
+    const now = Date.now();
+    const future = gicRates.find((period) => new Date(period.effectiveFrom).getTime() > now);
+    return future ?? gicRates[0];
+  }, [gicRates]);
+
+  const [gicReminderSent, setGicReminderSent] = useState(false);
+
+  const handleGicReminder = useCallback(() => {
+    if (!upcomingGic) {
+      return;
+    }
+    sendNotification(
+      'GIC rate reminder',
+      `General Interest Charge rate ${formatPercent(upcomingGic.rate)} applies from ${new Date(upcomingGic.effectiveFrom).toLocaleDateString('en-AU')}.`,
+    );
+    setGicReminderSent(true);
+  }, [upcomingGic]);
 
   const toggleReminder = (quarter: { label: string; standardDueDate: string }) => {
     const isReminderSet = reminders.some((r) => r.label === quarter.label);
@@ -219,6 +249,76 @@ export function BusinessTools() {
         </CardContent>
       </Card>
 
+      {smallBusiness && (instantAsset || simplifiedDepreciation) ? (
+        <Card className="lg:col-span-2">
+          <CardHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                <PackageCheckIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <CardTitle className="text-2xl">Instant asset write-off & pooling</CardTitle>
+                <CardDescription>
+                  Check eligibility for the temporary instant asset write-off and simplified
+                  depreciation pool.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            {instantAsset ? (
+              <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-xs uppercase text-emerald-700">Instant asset write-off</p>
+                <p className="text-2xl font-semibold text-emerald-900">
+                  {formatCurrency(instantAsset.threshold)}
+                </p>
+                <p className="text-xs text-emerald-800">{instantAsset.effectivePeriod}</p>
+                <p className="text-sm text-emerald-900/80">{instantAsset.eligibility}</p>
+                {instantAsset.notes ? (
+                  <p className="text-xs text-emerald-700">{instantAsset.notes}</p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {simplifiedDepreciation ? (
+              <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-xs uppercase text-slate-500">Simplified depreciation pool</p>
+                <div className="text-sm text-slate-700">
+                  <p>
+                    Pool balance threshold:{' '}
+                    <span className="font-semibold">
+                      {formatCurrency(simplifiedDepreciation.threshold)}
+                    </span>
+                  </p>
+                  <p className="mt-2">
+                    First year rate:{' '}
+                    <span className="font-semibold">
+                      {formatPercent(simplifiedDepreciation.firstYearRate)}
+                    </span>
+                  </p>
+                  <p>
+                    Subsequent years:{' '}
+                    <span className="font-semibold">
+                      {formatPercent(simplifiedDepreciation.subsequentRate)}
+                    </span>
+                  </p>
+                </div>
+                <p className="text-sm text-slate-600">{simplifiedDepreciation.eligibility}</p>
+                {simplifiedDepreciation.notes ? (
+                  <p className="text-xs text-slate-500">{simplifiedDepreciation.notes}</p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {smallBusiness?.reminder ? (
+              <Alert className="md:col-span-2">
+                <p className="text-sm text-slate-700">{smallBusiness.reminder}</p>
+              </Alert>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card className="lg:col-span-2">
         <CardHeader className="space-y-3">
           <div className="flex items-center gap-3">
@@ -276,6 +376,82 @@ export function BusinessTools() {
           </Alert>
         </CardContent>
       </Card>
+
+      {interestRates ? (
+        <Card className="lg:col-span-2">
+          <CardHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                <LineChartIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <CardTitle className="text-2xl">ATO interest benchmarks</CardTitle>
+                <CardDescription>
+                  Track current General Interest Charge and benchmark interest rates applied to tax
+                  debts and Division 7A loans.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs uppercase text-slate-500">General Interest Charge</p>
+              <p className="text-sm text-slate-700">{interestRates.generalInterestCharge.description}</p>
+              <ul className="space-y-2 text-xs text-slate-600">
+                {gicRates.map((period) => (
+                  <li
+                    key={`${period.label}-${period.effectiveFrom}`}
+                    className="flex items-center justify-between rounded-md bg-white px-3 py-2 shadow-sm"
+                  >
+                    <span className="font-semibold text-slate-700">{period.label}</span>
+                    <span className="text-sm font-medium text-slate-900">
+                      {formatPercent(period.rate)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {upcomingGic ? (
+                <Button
+                  type="button"
+                  variant={gicReminderSent ? 'outline' : 'default'}
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleGicReminder}
+                  disabled={gicReminderSent}
+                >
+                  {gicReminderSent ? 'Reminder scheduled' : 'Remind me next quarter'}
+                </Button>
+              ) : null}
+            </div>
+            {interestRates.benchmarkInterest ? (
+              <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-xs uppercase text-slate-500">Division 7A benchmark</p>
+                <p className="text-sm text-slate-700">
+                  {interestRates.benchmarkInterest.description}
+                </p>
+                <ul className="space-y-2 text-xs text-slate-600">
+                  {benchmarkRates.map((period) => (
+                    <li
+                      key={`${period.label}-${period.effectiveFrom}`}
+                      className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2"
+                    >
+                      <span className="font-semibold text-slate-700">{period.label}</span>
+                      <span className="text-sm font-medium text-slate-900">
+                        {formatPercent(period.rate)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {interestRates.benchmarkInterest.frankingNotes ? (
+                  <p className="text-xs text-slate-500">
+                    {interestRates.benchmarkInterest.frankingNotes}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {(basQuarters.length > 0 || annualObligations.length > 0) && (
         <Card className="lg:col-span-2">

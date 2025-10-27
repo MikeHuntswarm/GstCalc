@@ -1,4 +1,4 @@
-import type { FinancialYearRates, TaxBracket } from '@/types/ato';
+import type { FinancialYearRates, MedicareLevyConfig, TaxBracket } from '@/types/ato';
 
 export interface IncomeTaxBreakdown {
   taxableIncome: number;
@@ -9,6 +9,11 @@ export interface IncomeTaxBreakdown {
   weeklyTax: number;
   weeklyNetIncome: number;
   bracket: TaxBracket;
+}
+
+export interface MedicareLevyBreakdown {
+  amount: number;
+  effectiveRate: number;
 }
 
 function getBracketForIncome(income: number, brackets: TaxBracket[]): TaxBracket {
@@ -53,4 +58,27 @@ export function calculateIncomeTax(income: number, year: FinancialYearRates): In
 
 export function calculateWeeklyFromAnnual(income: number) {
   return income / 52;
+}
+
+export function calculateMedicareLevy(
+  income: number,
+  config?: MedicareLevyConfig,
+): MedicareLevyBreakdown {
+  if (!config) {
+    return { amount: 0, effectiveRate: 0 };
+  }
+
+  const taxableIncome = Math.max(0, income);
+  const { levyRate, lowIncomeThreshold, taperRate } = config;
+
+  if (taxableIncome <= lowIncomeThreshold) {
+    return { amount: 0, effectiveRate: 0 };
+  }
+
+  const phasedLevy = (taxableIncome - lowIncomeThreshold) * taperRate;
+  const fullLevy = taxableIncome * levyRate;
+  const amount = Math.min(Math.max(phasedLevy, 0), fullLevy);
+  const effectiveRate = taxableIncome > 0 ? amount / taxableIncome : 0;
+
+  return { amount, effectiveRate };
 }

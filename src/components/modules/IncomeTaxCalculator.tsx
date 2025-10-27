@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { formatCurrency, formatPercent } from '@/lib/utils';
-import { calculateIncomeTax } from '@/lib/calculations/incomeTax';
+import { calculateIncomeTax, calculateMedicareLevy } from '@/lib/calculations/incomeTax';
 import { useAtoStore } from '@/store/ato';
 
 type Frequency = 'annual' | 'weekly';
@@ -20,6 +20,8 @@ export function IncomeTaxCalculator() {
   } = useAtoStore();
   const years = atoData?.individual.financialYears ?? [];
   const lastUpdated = atoData?.metadata.lastUpdated ?? new Date().toISOString();
+  const medicareConfig = atoData?.individual.medicare;
+  const offsets = atoData?.individual.offsets ?? [];
 
   const [selectedYear, setSelectedYear] = useState(years[0]?.year ?? '');
   const [frequency, setFrequency] = useState<Frequency>('annual');
@@ -55,6 +57,11 @@ export function IncomeTaxCalculator() {
     }
     return calculateIncomeTax(parsedIncome, yearData);
   }, [parsedIncome, yearData]);
+
+  const medicareLevy = useMemo(
+    () => calculateMedicareLevy(parsedIncome, medicareConfig),
+    [medicareConfig, parsedIncome],
+  );
 
   return (
     <Card>
@@ -149,8 +156,9 @@ export function IncomeTaxCalculator() {
         </div>
 
         {yearData && breakdown ? (
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-6">
+          <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-6">
               <div>
                 <p className="text-xs uppercase text-slate-500">Estimated annual tax</p>
                 <p className="text-3xl font-semibold text-slate-900">
@@ -197,7 +205,7 @@ export function IncomeTaxCalculator() {
                 {yearData.taxBrackets.map((bracket, index) => {
                   const nextThreshold = yearData.taxBrackets[index + 1]?.threshold;
                   const rangeLabel = nextThreshold
-                    ? `${formatCurrency(bracket.threshold)} – ${formatCurrency(nextThreshold - 1)}`
+                    ? `${formatCurrency(bracket.threshold)} - ${formatCurrency(nextThreshold - 1)}`
                     : `${formatCurrency(bracket.threshold)} and above`;
                   const isActive = breakdown.bracket.threshold === bracket.threshold;
                   return (
@@ -219,6 +227,56 @@ export function IncomeTaxCalculator() {
               </ul>
             </div>
           </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-emerald-900">Medicare levy estimate</p>
+                <Badge variant="outline">
+                  Effective {formatPercent(medicareLevy.effectiveRate)}
+                </Badge>
+              </div>
+              <p className="text-2xl font-semibold text-emerald-900">
+                {formatCurrency(medicareLevy.amount)}
+              </p>
+              <p className="text-xs text-emerald-800">
+                Based on a {medicareConfig ? formatPercent(medicareConfig.levyRate) : '0%'} levy with
+                a low-income threshold of{' '}
+                {medicareConfig ? formatCurrency(medicareConfig.lowIncomeThreshold) : '$0.00'}.
+              </p>
+              {medicareConfig?.notes ? (
+                <p className="text-xs text-emerald-700">{medicareConfig.notes}</p>
+              ) : null}
+            </div>
+
+            {offsets.length > 0 ? (
+              <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-6">
+                <p className="text-sm font-semibold text-slate-800">Relevant tax offsets</p>
+                <ul className="space-y-3 text-xs text-slate-600">
+                  {offsets.map((offset) => (
+                    <li key={offset.name} className="rounded-md bg-slate-50 p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-700">{offset.name}</span>
+                        <Badge variant="outline">
+                          Up to {formatCurrency(offset.maxAmount)}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-slate-600">{offset.description}</p>
+                      {offset.incomeLimit ? (
+                        <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-500">
+                          Phases out above {formatCurrency(offset.incomeLimit)}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">
+                  Confirm eligibility with the ATO or a registered tax agent.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
         ) : (
           <Alert variant="destructive">
             Unable to load tax brackets for the selected financial year.
@@ -228,3 +286,4 @@ export function IncomeTaxCalculator() {
     </Card>
   );
 }
+
