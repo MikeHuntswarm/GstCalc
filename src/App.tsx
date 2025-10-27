@@ -8,6 +8,7 @@ import { GstCalculator } from '@/components/modules/GstCalculator';
 import { IncomeTaxCalculator } from '@/components/modules/IncomeTaxCalculator';
 import { BusinessTools } from '@/components/modules/BusinessTools';
 import { AnnualBusinessTax } from '@/components/modules/AnnualBusinessTax';
+import { Updater } from '@/components/modules/Updater';
 import { useAtoStore } from '@/store/ato';
 import { formatPercent } from '@/lib/utils';
 import { sendNotification } from '@/lib/notifications';
@@ -124,6 +125,7 @@ export default function App() {
             <TabsTrigger value="individual">Individual tools</TabsTrigger>
             <TabsTrigger value="business">Business tools</TabsTrigger>
             <TabsTrigger value="annual-tax">Annual business tax</TabsTrigger>
+            <TabsTrigger value="updater">App Updates</TabsTrigger>
           </TabsList>
 
           <TabsContent value="individual" className="space-y-6">
@@ -159,6 +161,10 @@ export default function App() {
                 Company rate data is unavailable. Refresh the dataset to try again.
               </Alert>
             )}
+          </TabsContent>
+
+          <TabsContent value="updater">
+            <Updater />
           </TabsContent>
         </Tabs>
       </main>

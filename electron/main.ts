@@ -52,16 +52,32 @@ async function createMainWindow() {
   return mainWindow;
 }
 
-function setupAutoUpdates() {
+function setupAutoUpdates(mainWindow: BrowserWindow) {
   if (isDev) {
     return;
   }
 
-  autoUpdater.on('error', (error: Error) => {
-    console.error('Auto update error:', error);
+  autoUpdater.on('update-available', (info) => {
+    mainWindow.webContents.send('updater:update-available', info);
   });
 
-  autoUpdater.checkForUpdatesAndNotify().catch((error: unknown) => {
+  autoUpdater.on('update-not-available', (info) => {
+    mainWindow.webContents.send('updater:update-not-available', info);
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    mainWindow.webContents.send('updater:download-progress', progress);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    mainWindow.webContents.send('updater:update-downloaded', info);
+  });
+
+  autoUpdater.on('error', (error: Error) => {
+    mainWindow.webContents.send('updater:error', error);
+  });
+
+  autoUpdater.checkForUpdates().catch((error: unknown) => {
     console.error('Failed to check for updates', error);
   });
 }
@@ -73,8 +89,8 @@ app.on('window-all-closed', () => {
 });
 
 app.whenReady().then(async () => {
-  await createMainWindow();
-  setupAutoUpdates();
+  const mainWindow = await createMainWindow();
+  setupAutoUpdates(mainWindow);
 
   ipcMain.on('show-notification', (event, title, body) => {
     console.log(`Showing notification: ${title} - ${body}`);
@@ -83,6 +99,16 @@ app.whenReady().then(async () => {
     } else {
       console.log('Notifications are not supported on this system.');
     }
+  });
+
+  ipcMain.on('app:relaunch', () => {
+    autoUpdater.quitAndInstall(true, true);
+  });
+
+  ipcMain.on('updater:check-for-updates', () => {
+    autoUpdater.checkForUpdates().catch((error: unknown) => {
+      console.error('Failed to check for updates', error);
+    });
   });
 
   ipcMain.handle('get-ato-rates', async (event, url) => {
