@@ -48,14 +48,16 @@ export default function App() {
       const now = new Date();
 
       reminders.forEach((reminder) => {
-        const dueDate = parse(reminder.dueDate, 'd MMMM yyyy', new Date());
-        const daysUntilDue = differenceInCalendarDays(dueDate, now);
+        if (reminder.dueDate) {
+          const dueDate = parse(reminder.dueDate, 'd MMMM yyyy', new Date());
+          const daysUntilDue = differenceInCalendarDays(dueDate, now);
 
-        if (daysUntilDue > 0 && daysUntilDue <= 7) {
-          sendNotification(
-            'Upcoming BAS Lodgement',
-            `Your ${reminder.label} is due in ${daysUntilDue} days.`,
-          );
+          if (daysUntilDue > 0 && daysUntilDue <= 7) {
+            sendNotification(
+              'Upcoming BAS Lodgement',
+              `Your ${reminder.label} is due in ${daysUntilDue} days.`,
+            );
+          }
         }
       });
     }
