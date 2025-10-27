@@ -71,12 +71,39 @@
           }
         ]
       }
+    ],
+    "medicare": {
+      "levyRate": 0.02,
+      "lowIncomeThreshold": 26000,
+      "taperRate": 0.1,
+      "familyThreshold": 43767,
+      "notes": "Levy phases in at 10% of taxable income above the threshold until it reaches 2% of taxable income. Additional thresholds apply for families and seniors."
+    },
+    "offsets": [
+      {
+        "name": "Low Income Tax Offset (LITO)",
+        "description": "Up to $700 for incomes up to $37,500, reducing progressively to nil at $66,667.",
+        "maxAmount": 700,
+        "incomeLimit": 66667
+      },
+      {
+        "name": "Low and Middle Income Tax Offset (LMITO)",
+        "description": "Currently legislated as nil for 2024-25. Retained for historical comparisons.",
+        "maxAmount": 0
+      },
+      {
+        "name": "Senior Australians and Pensioners Tax Offset",
+        "description": "Available subject to eligibility tests and income limits that vary by status. Refer to tax agent for personalised assessment.",
+        "maxAmount": 0
+      }
     ]
   },
   "company": {
     "baseRateEntity": {
       "rate": 0.25,
-      "criteria": "Aggregated turnover below $50 million and no more than 80% passive income."
+      "criteria": "Aggregated turnover below $50 million and no more than 80% passive income.",
+      "baseRateTurnoverCap": 50000000,
+      "passiveIncomeMaxPercent": 80
     },
     "fullRate": {
       "rate": 0.3,
@@ -94,100 +121,57 @@
       "description": "General Interest Charge (GIC) accrues on outstanding tax debts on a daily compounding basis. The rate is updated quarterly based on the 90-day bank bill rate plus a premium."
     }
   },
-  "lodgements": {
-    "basQuarters": [
-      {
-        "label": "Q1 (Jul-Sep)",
-        "period": "1 July - 30 September",
-        "standardDueDate": "28 October",
-        "notes": "Tax or BAS agents may receive an extension to 25 November."
-      },
-      {
-        "label": "Q2 (Oct-Dec)",
-        "period": "1 October - 31 December",
-        "standardDueDate": "28 February",
-        "notes": "No extension even when lodging online; payment is also due 28 February."
-      },
-      {
-        "label": "Q3 (Jan-Mar)",
-        "period": "1 January - 31 March",
-        "standardDueDate": "28 April",
-        "notes": "If the due date falls on a weekend or holiday, it moves to the next business day."
-      },
-      {
-        "label": "Q4 (Apr-Jun)",
-        "period": "1 April - 30 June",
-        "standardDueDate": "28 July",
-        "notes": "Finalise payroll and superannuation before lodging to keep PAYG withholding accurate."
-      }
-    ],
-    "annualObligations": [
-      {
-        "name": "Income tax return (self-lodged sole traders and small companies)",
-        "dueDate": "31 October",
-        "notes": "Tax agents have their own lodgement program when engaged before 31 October."
-      },
-      {
-        "name": "Income tax return via registered tax agent",
-        "dueDate": "15 May",
-        "notes": "Exact due date depends on your agent's ATO lodgement program listing."
-      },
-      {
-        "name": "Annual GST return (annual payers)",
-        "dueDate": "28 February",
-        "notes": "Aligns with Q2 BAS deadline when you report annually."
-      },
-      {
-        "name": "Fringe benefits tax (FBT) annual return",
-        "dueDate": "21 May",
-        "notes": "If lodged through a tax agent the due date can be extended to 25 June."
-      },
-      {
-        "name": "PAYG withholding annual report",
-        "dueDate": "14 August",
-        "notes": "Electronic lodgers receive an extension to 14 September."
-      }
-    ]
+  "smallBusiness": {
+    "instantAssetWriteOff": {
+      "threshold": 20000,
+      "effectivePeriod": "1 July 2023 to 30 June 2025",
+      "eligibility": "Aggregated turnover under $10 million and assets first used or installed ready for use within the eligible window.",
+      "notes": "Assets costing more than the threshold must be placed into the small business pool."
+    },
+    "simplifiedDepreciation": {
+      "threshold": 10000000,
+      "firstYearRate": 0.15,
+      "subsequentRate": 0.3,
+      "eligibility": "Available to small businesses using the simplified depreciation rules with aggregated turnover under $10 million.",
+      "notes": "When the closing pool balance falls below the instant asset write-off threshold it can be written off in full."
+    },
+    "reminder": "Temporary $20,000 instant asset write-off ends 30 June 2025 unless extended by Parliament."
   },
-  "taxPlanning": {
-    "disclaimer": "General information only. Discuss with a registered tax professional before applying to your circumstances.",
-    "strategies": [
-      {
-        "title": "Smooth cash flow with PAYG instalments",
-        "summary": "Review quarterly PAYG instalments so they better match your actual profitability.",
-        "actions": [
-          "Compare each instalment with year-to-date profit and forecast the full-year result.",
-          "Submit a variation through Online services for business when income materially changes."
-        ],
-        "caution": "Underestimating instalments can trigger interest or penalties if the variance is significant."
-      },
-      {
-        "title": "Plan deductions before 30 June",
-        "summary": "Bring forward tax-deductible expenses or write-offs where it helps manage your taxable income.",
-        "actions": [
-          "Review asset replacement plans and consider instant asset write-off thresholds.",
-          "Prepay eligible expenses (like rent or insurance) where cash flow allows."
-        ],
-        "caution": "Ensure expenses are genuinely incurred for business purposes and keep supporting documentation."
-      },
-      {
-        "title": "Use superannuation contributions strategically",
-        "summary": "Contribute to super within the concessional cap to reduce taxable profits and build retirement savings.",
-        "actions": [
-          "Track the $27,500 concessional cap and consider catch-up amounts if eligible.",
-          "Ensure contributions clear the fund before 30 June to count for that financial year."
-        ],
-        "caution": "Excess contributions can attract additional tax; check timing with your fund administrator."
-      },
-      {
-        "title": "Document business use percentages",
-        "summary": "Maintain logs for mixed-use assets to substantiate the deductible business portion.",
-        "actions": [
-          "Update vehicle logbooks every five years or when usage changes materially.",
-          "Record home office, phone, and internet usage with contemporaneous evidence."
-        ],
-        "caution": "Private usage claims without evidence increase audit risk."
-      }
-    ]
+  "interestRates": {
+    "generalInterestCharge": {
+      "description": "General Interest Charge is applied to tax debts daily using compounding interest. Rates change each quarter based on the 90-day bank bill rate plus a 7 percentage point uplift.",
+      "quarterlyRates": [
+        {
+          "label": "July - September 2024",
+          "rate": 0.1173,
+          "effectiveFrom": "2024-07-01",
+          "effectiveTo": "2024-09-30"
+        },
+        {
+          "label": "October - December 2024",
+          "rate": 0.1168,
+          "effectiveFrom": "2024-10-01",
+          "effectiveTo": "2024-12-31"
+        },
+        {
+          "label": "January - March 2025",
+          "rate": 0.1165,
+          "effectiveFrom": "2025-01-01",
+          "effectiveTo": "2025-03-31"
+        }
+      ]
+    },
+    "benchmarkInterest": {
+      "description": "Division 7A benchmark interest rate applies to shareholder or associate loans to avoid deemed dividends.",
+      "frankingNotes": "Use the benchmark rate to set minimum yearly repayments on complying Division 7A loans.",
+      "quarterlyRates": [
+        {
+          "label": "2024-25 income year",
+          "rate": 0.0872,
+          "effectiveFrom": "2024-07-01",
+          "effectiveTo": "2025-06-30"
+        }
+      ]
+    }
   }
 }
