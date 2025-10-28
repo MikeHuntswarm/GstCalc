@@ -1,9 +1,9 @@
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const PRIMARY_SOURCE = 'https://gstcalc.github.io/data/ato-rates.json';
+const PRIMARY_SOURCE = 'https://raw.githubusercontent.com/tsvillain/GstCalc/master/ato-rates.json';
 const RAW_GITHUB_FALLBACK =
-  'https://raw.githubusercontent.com/GstCalc/GstCalc/main/data/ato-rates.json';
+  'https://raw.githubusercontent.com/tsvillain/GstCalc/master/ato-rates.json';
 const FETCH_TIMEOUT_MS = Number.parseInt(process.env.ATO_RATES_TIMEOUT ?? '15000', 10);
 const ACCESS_TOKEN = process.env.ATO_RATES_ACCESS_TOKEN ?? process.env.GITHUB_TOKEN;
 const USER_AGENT = process.env.ATO_RATES_USER_AGENT ?? 'GSTCalcRatesUpdater/1.0';
