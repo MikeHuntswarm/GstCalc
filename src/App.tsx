@@ -8,16 +8,11 @@ import { GstCalculator } from '@/components/modules/GstCalculator';
 import { IncomeTaxCalculator } from '@/components/modules/IncomeTaxCalculator';
 import { BusinessTools } from '@/components/modules/BusinessTools';
 import { AnnualBusinessTax } from '@/components/modules/AnnualBusinessTax';
+import { Reminders } from '@/components/modules/Reminders';
 import { Updater } from '@/components/modules/Updater';
 import { useAtoStore } from '@/store/ato';
+import { useRemindersStore } from '@/store/reminders';
 import { formatPercent } from '@/lib/utils';
-import { sendNotification } from '@/lib/notifications';
-import { parse, differenceInCalendarDays } from 'date-fns';
-
-interface Reminder {
-  label: string;
-  dueDate: string;
-}
 
 function LoadingState({ message }: { message: string }) {
   return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
@@ -36,32 +31,17 @@ export default function App() {
     fetchAtoRates,
     refresh,
   } = useAtoStore();
+  
+  const { checkDueReminders } = useRemindersStore();
 
   useEffect(() => {
     fetchAtoRates();
   }, [fetchAtoRates]);
 
   useEffect(() => {
-    const storedReminders = localStorage.getItem('gstcalc-reminders');
-    if (storedReminders) {
-      const reminders = JSON.parse(storedReminders) as Reminder[];
-      const now = new Date();
-
-      reminders.forEach((reminder) => {
-        if (reminder.dueDate) {
-          const dueDate = parse(reminder.dueDate, 'd MMMM yyyy', new Date());
-          const daysUntilDue = differenceInCalendarDays(dueDate, now);
-
-          if (daysUntilDue > 0 && daysUntilDue <= 7) {
-            sendNotification(
-              'Upcoming BAS Lodgement',
-              `Your ${reminder.label} is due in ${daysUntilDue} days.`,
-            );
-          }
-        }
-      });
-    }
-  }, []);
+    // Check for due reminders on app start
+    checkDueReminders();
+  }, [checkDueReminders]);
 
   const gstRate = data?.gst.standardRate ?? 0.1;
   const gstNotes = data?.gst.notes;
@@ -127,6 +107,7 @@ export default function App() {
             <TabsTrigger value="individual">Individual tools</TabsTrigger>
             <TabsTrigger value="business">Business tools</TabsTrigger>
             <TabsTrigger value="annual-tax">Annual business tax</TabsTrigger>
+            <TabsTrigger value="reminders">Reminders</TabsTrigger>
             <TabsTrigger value="updater">App Updates</TabsTrigger>
           </TabsList>
 
@@ -154,15 +135,16 @@ export default function App() {
 
           <TabsContent value="annual-tax" className="space-y-6">
             {readyForBusiness && companyRates ? (
-              <AnnualBusinessTax
-                baseRate={companyRates.baseRateEntity}
-                fullRate={companyRates.fullRate}
-              />
+              <AnnualBusinessTax />
             ) : (
               <Alert variant="warning">
                 Company rate data is unavailable. Refresh the dataset to try again.
               </Alert>
             )}
+          </TabsContent>
+          
+          <TabsContent value="reminders" className="space-y-6">
+            <Reminders />
           </TabsContent>
 
           <TabsContent value="updater">

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import {
   AlertTriangleIcon,
   Building2Icon,
@@ -19,11 +19,7 @@ import { formatCurrency, formatPercent } from '@/lib/utils';
 import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
 import { sendNotification } from '@/lib/notifications';
 import { useAtoStore } from '@/store/ato';
-
-interface Reminder {
-  label: string;
-  dueDate: string;
-}
+import { useRemindersStore, formatReminderDate } from '@/store/reminders';
 
 export function BusinessTools() {
   const {
@@ -37,19 +33,13 @@ export function BusinessTools() {
   const taxPlanning = atoData?.taxPlanning;
   const smallBusiness = atoData?.smallBusiness;
   const interestRates = atoData?.interestRates;
+  
+  const { reminders, addReminder, removeReminder } = useRemindersStore();
 
   const [sales, setSales] = useState('');
   const [gstCollected, setGstCollected] = useState('');
   const [gstCredits, setGstCredits] = useState('');
   const [daysLate, setDaysLate] = useState('');
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-
-  useEffect(() => {
-    const storedReminders = localStorage.getItem('gstcalc-reminders');
-    if (storedReminders) {
-      setReminders(JSON.parse(storedReminders));
-    }
-  }, []);
 
   const parsedSales = useMemo(() => parseFloat(sales.replace(/[^0-9.-]/g, '')) || 0, [sales]);
   const parsedGstCollected = useMemo(
@@ -104,15 +94,21 @@ export function BusinessTools() {
   }, [upcomingGic]);
 
   const toggleReminder = (quarter: { label: string; standardDueDate: string }) => {
-    const isReminderSet = reminders.some((r) => r.label === quarter.label);
-    const newReminders = isReminderSet
-      ? reminders.filter((r) => r.label !== quarter.label)
-      : [...reminders, { label: quarter.label, dueDate: quarter.standardDueDate }];
-
-    setReminders(newReminders);
-    localStorage.setItem('gstcalc-reminders', JSON.stringify(newReminders));
-
-    if (!isReminderSet) {
+    // Check if reminder exists by finding a matching label
+    const existingReminder = reminders.find(r => r.label === quarter.label);
+    
+    if (existingReminder) {
+      // Remove the reminder
+      removeReminder(existingReminder.id);
+    } else {
+      // Add a new reminder
+      addReminder({
+        label: quarter.label,
+        dueDate: quarter.standardDueDate,
+        category: 'bas',
+        notifyDaysBefore: [7, 3, 1],
+      });
+      
       sendNotification(
         'BAS Reminder Set',
         `You will be reminded about the ${quarter.label} lodgement.`,
