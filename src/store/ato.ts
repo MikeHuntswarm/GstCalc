@@ -10,21 +10,58 @@ interface AtoState {
   refresh: () => Promise<void>;
 }
 
-const API_URL = '/data/ato-rates.json';
+// Use relative paths to improve compatibility in different contexts
+// - './data/ato-rates.json' works better in dev server
+// - './public/data/ato-rates.json' is a fallback for Electron
+const LOCAL_API_URL = './data/ato-rates.json'; 
+const ELECTRON_API_URL = './public/data/ato-rates.json';
 const CACHE_KEY = 'gstcalc-ato-rates';
 const CACHE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 async function fetchData(): Promise<AtoData> {
-  const response = await fetch(API_URL);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ATO rates: ${response.statusText}`);
+  // Try multiple approaches to load the data, in order of preference
+  const errors: Error[] = [];
+
+  // 1. First try using Electron's IPC if available (production app)
+  if (window.gstcalc?.getAtoRates) {
+    try {
+      console.log('Trying to load ATO rates via Electron IPC');
+      const data = await window.gstcalc.getAtoRates(ELECTRON_API_URL);
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({ timestamp: Date.now(), data }),
+      );
+      console.log('Successfully loaded ATO rates via Electron IPC');
+      return data;
+    } catch (electronError) {
+      console.warn('Failed to load via Electron IPC, will try fetch API', electronError);
+      errors.push(electronError instanceof Error ? electronError : new Error('Unknown Electron error'));
+    }
   }
-  const data = await response.json();
-  localStorage.setItem(
-    CACHE_KEY,
-    JSON.stringify({ timestamp: Date.now(), data }),
-  );
-  return data;
+
+  // 2. Try using the fetch API (works in browser and dev mode)
+  try {
+    console.log('Trying to load ATO rates via fetch API from', LOCAL_API_URL);
+    const response = await fetch(LOCAL_API_URL);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ATO rates: ${response.statusText}`);
+    }
+    const data = await response.json();
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ timestamp: Date.now(), data }),
+    );
+    console.log('Successfully loaded ATO rates via fetch API');
+    return data;
+  } catch (fetchError) {
+    console.warn('Failed to load via fetch API', fetchError);
+    errors.push(fetchError instanceof Error ? fetchError : new Error('Unknown fetch error'));
+  }
+  
+  // If we got here, all attempts failed
+  const errorMessage = `Failed to load ATO rates data: ${errors.map(e => e.message).join('; ')}`;
+  console.error(errorMessage);
+  throw new Error(errorMessage);
 }
 
 export const useAtoStore = create<AtoState>((set, get) => ({
