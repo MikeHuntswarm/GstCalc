@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { CalendarIcon, PlusIcon, BellIcon, CheckIcon, TrashIcon, PencilIcon } from 'lucide-react';
-import { format, parse, addDays } from 'date-fns';
+import { PlusIcon, BellIcon, TrashIcon, PencilIcon } from 'lucide-react';
+import { format, parse } from 'date-fns';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
+
 import { 
   useRemindersStore, 
   ReminderCategory, 
@@ -30,6 +30,7 @@ export function Reminders() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<ReminderCategory | 'all'>('all');
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   
   // Form state
   const [formLabel, setFormLabel] = useState('');
@@ -115,9 +116,8 @@ export function Reminders() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this reminder?')) {
-      removeReminder(id);
-    }
+    removeReminder(id);
+    setConfirmingDeleteId(null);
   };
 
   const handleNotifyDayToggle = (days: number) => {
@@ -409,29 +409,59 @@ export function Reminders() {
                       
                       <div className="flex items-center gap-2">
                         <Badge className={dueInfo.style}>{dueInfo.label}</Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleStartEdit(reminder)}
+                          aria-label="Edit reminder"
                         >
                           <PencilIcon className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleDelete(reminder.id)}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            setConfirmingDeleteId((current) =>
+                              current === reminder.id ? null : reminder.id,
+                            )
+                          }
+                          aria-label="Delete reminder"
                         >
                           <TrashIcon className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
 
-                    <div className="mt-3">
+                    <div className="mt-3 space-y-2">
                       <p className="text-xs text-slate-500">
-                        Will notify: {reminder.notifyDaysBefore.length ? reminder.notifyDaysBefore.map(d => 
-                          d === 0 ? 'on due date' : `${d} day${d !== 1 ? 's' : ''} before`
-                        ).join(', ') : 'No notifications set'}
+                        Will notify:{' '}
+                        {reminder.notifyDaysBefore.length
+                          ? reminder.notifyDaysBefore
+                              .map((d) => (d === 0 ? 'on due date' : `${d} day${d !== 1 ? 's' : ''} before`))
+                              .join(', ')
+                          : 'No notifications set'}
                       </p>
+                      {confirmingDeleteId === reminder.id ? (
+                        <div className="flex items-center justify-end gap-2 text-xs text-slate-600">
+                          <span>Delete this reminder?</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setConfirmingDeleteId(null)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(reminder.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 );

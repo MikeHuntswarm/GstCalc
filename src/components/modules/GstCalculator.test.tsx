@@ -1,18 +1,62 @@
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { GstCalculator } from './GstCalculator';
 import { useAtoStore } from '@/store/ato';
+import type { AtoData } from '@/types/ato';
+
+const mockAtoData: AtoData = {
+  metadata: {
+    source: 'test',
+    lastUpdated: new Date().toISOString(),
+  },
+  gst: {
+    standardRate: 0.1,
+    notes: 'Test notes',
+  },
+  individual: {
+    financialYears: [],
+    medicare: undefined,
+    offsets: [],
+  },
+  company: {
+    baseRateEntity: {
+      rate: 0.25,
+      criteria: 'Base rate entity (test)',
+      baseRateTurnoverCap: 50_000_000,
+      passiveIncomeMaxPercent: 80,
+    },
+    fullRate: {
+      rate: 0.3,
+      criteria: 'Full rate (test)',
+    },
+  },
+  penalties: {
+    failureToLodge: {
+      unitValue: 313,
+      maxUnits: 5,
+      frequencyDays: 28,
+      description: 'Test failure to lodge schedule',
+    },
+    generalInterestCharge: {
+      description: 'Test general interest charge',
+    },
+  },
+  lodgements: undefined,
+  taxPlanning: undefined,
+  smallBusiness: undefined,
+  interestRates: undefined,
+};
 
 describe('GstCalculator', () => {
   beforeEach(() => {
-    useAtoStore.setState({
-      data: {
-        gst: {
-          standardRate: 0.1,
-          notes: 'Test notes',
-        },
-      },
-    } as any);
+    useAtoStore.setState((state) => ({
+      ...state,
+      data: mockAtoData,
+      status: 'success',
+      error: null,
+      stale: false,
+    }));
   });
 
   it('renders the calculator', () => {

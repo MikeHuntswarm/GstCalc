@@ -45,41 +45,57 @@ describe('GST calculation input validation', () => {
   // Tests for calculateFromExclusive
   it('calculateFromExclusive throws error for invalid amount', () => {
     expect(() => calculateFromExclusive(NaN, 0.1)).toThrow('Invalid amount: amount must be a valid number.');
-    expect(() => calculateFromExclusive('abc' as any, 0.1)).toThrow('Invalid amount: amount must be a valid number.');
+    expect(() => calculateFromExclusive('abc' as unknown as number, 0.1)).toThrow(
+      'Invalid amount: amount must be a valid number.',
+    );
   });
 
   it('calculateFromExclusive throws error for invalid rate', () => {
     expect(() => calculateFromExclusive(100, NaN)).toThrow('Invalid rate: rate must be a valid non-negative number.');
     expect(() => calculateFromExclusive(100, -0.1)).toThrow('Invalid rate: rate must be a valid non-negative number.');
-    expect(() => calculateFromExclusive(100, 'abc' as any)).toThrow('Invalid rate: rate must be a valid non-negative number.');
+    expect(() => calculateFromExclusive(100, 'abc' as unknown as number)).toThrow(
+      'Invalid rate: rate must be a valid non-negative number.',
+    );
   });
 
   // Tests for calculateFromInclusive
   it('calculateFromInclusive throws error for invalid amount', () => {
     expect(() => calculateFromInclusive(NaN, 0.1)).toThrow('Invalid amount: amount must be a valid number.');
-    expect(() => calculateFromInclusive('abc' as any, 0.1)).toThrow('Invalid amount: amount must be a valid number.');
+    expect(() => calculateFromInclusive('abc' as unknown as number, 0.1)).toThrow(
+      'Invalid amount: amount must be a valid number.',
+    );
   });
 
   it('calculateFromInclusive throws error for invalid rate', () => {
     expect(() => calculateFromInclusive(100, NaN)).toThrow('Invalid rate: rate must be a valid non-negative number.');
     expect(() => calculateFromInclusive(100, -0.1)).toThrow('Invalid rate: rate must be a valid non-negative number.');
-    expect(() => calculateFromInclusive(100, 'abc' as any)).toThrow('Invalid rate: rate must be a valid non-negative number.');
+    expect(() => calculateFromInclusive(100, 'abc' as unknown as number)).toThrow(
+      'Invalid rate: rate must be a valid non-negative number.',
+    );
   });
 
   // Tests for determineGstFromAmount
   it('determineGstFromAmount throws error for invalid amount', () => {
     expect(() => determineGstFromAmount(NaN, 0.1, 'exclusive')).toThrow('Invalid amount: amount must be a valid number.');
-    expect(() => determineGstFromAmount('abc' as any, 0.1, 'inclusive')).toThrow('Invalid amount: amount must be a valid number.');
+    expect(() => determineGstFromAmount('abc' as unknown as number, 0.1, 'inclusive')).toThrow(
+      'Invalid amount: amount must be a valid number.',
+    );
   });
 
   it('determineGstFromAmount throws error for invalid rate', () => {
     expect(() => determineGstFromAmount(100, NaN, 'exclusive')).toThrow('Invalid rate: rate must be a valid non-negative number.');
     expect(() => determineGstFromAmount(100, -0.1, 'inclusive')).toThrow('Invalid rate: rate must be a valid non-negative number.');
-    expect(() => determineGstFromAmount(100, 'abc' as any, 'exclusive')).toThrow('Invalid rate: rate must be a valid non-negative number.');
+    expect(() => determineGstFromAmount(100, 'abc' as unknown as number, 'exclusive')).toThrow(
+      'Invalid rate: rate must be a valid non-negative number.',
+    );
   });
 
   it('determineGstFromAmount throws error for invalid mode', () => {
-    expect(() => determineGstFromAmount(100, 0.1, 'invalid' as any)).toThrow('Invalid mode: mode must be either "exclusive" or "inclusive".');
-    expect(() => determineGstFromAmount(100, 0.1, null as any)).toThrow('Invalid mode: mode must be either "exclusive" or "inclusive".');
+    expect(() => determineGstFromAmount(100, 0.1, 'invalid' as unknown as 'exclusive')).toThrow(
+      'Invalid mode: mode must be either "exclusive" or "inclusive".',
+    );
+    expect(() => determineGstFromAmount(100, 0.1, null as unknown as 'exclusive')).toThrow(
+      'Invalid mode: mode must be either "exclusive" or "inclusive".',
+    );
   });
 });

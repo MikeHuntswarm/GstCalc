@@ -159,7 +159,23 @@ export default function App() {
             GSTCalc is not financial advice. Verify calculations with the Australian Taxation Office
             or a registered tax agent.
           </p>
-          <p>Offline mode caches the last downloaded rate schedule for up to seven days.</p>
+          <p>
+            Offline mode caches the last downloaded rate schedule for up to seven days. See the{' '}
+            <a
+              href="https://github.com/your-username/GstCalc/tree/master/docs/support.md"
+              className="underline decoration-slate-400 hover:decoration-slate-700"
+            >
+              support & privacy notes
+            </a>{' '}
+            and{' '}
+            <a
+              href="https://github.com/your-username/GstCalc/tree/master/docs/legal.md"
+              className="underline decoration-slate-400 hover:decoration-slate-700"
+            >
+              legal disclaimer
+            </a>
+            .
+          </p>
         </div>
       </footer>
     </div>

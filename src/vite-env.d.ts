@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vitest" />
 
 interface ImportMetaEnv {
   readonly VITE_ATO_RATES_URL?: string;
@@ -10,6 +11,7 @@ interface ImportMeta {
 
 // Electron preload API
 import type { UpdateInfo, ProgressInfo } from 'electron-updater';
+import type { AtoData } from '@/types/ato';
 
 interface ElectronVersions {
   app: () => string;
@@ -32,9 +34,10 @@ interface ElectronApp {
 interface ElectronAPI {
   versions: ElectronVersions;
   sendNotification: (title: string, body: string) => void;
-  getAtoRates: (url: string) => Promise<any>;
+  getAtoRates: (url: string) => Promise<AtoData>;
   updater: ElectronUpdater;
   app: ElectronApp;
+  checkForUpdates: () => void;
 }
 
 declare global {

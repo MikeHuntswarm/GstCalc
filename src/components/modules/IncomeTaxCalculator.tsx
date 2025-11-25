@@ -18,7 +18,10 @@ export function IncomeTaxCalculator() {
   const {
     data: atoData,
   } = useAtoStore();
-  const years = atoData?.individual.financialYears ?? [];
+  const years = useMemo(
+    () => atoData?.individual.financialYears ?? [],
+    [atoData?.individual.financialYears],
+  );
   const lastUpdated = atoData?.metadata.lastUpdated ?? new Date().toISOString();
   const medicareConfig = atoData?.individual.medicare;
   const offsets = atoData?.individual.offsets ?? [];

@@ -12,43 +12,79 @@ export function Updater() {
   const [error, setError] = useState<Error | null>(null);
   const [isChecking, setIsChecking] = useState(false);
 
+  const hasElectronApi =
+    typeof window !== 'undefined' && typeof window.gstcalc !== 'undefined';
+
   useEffect(() => {
-    window.gstcalc.updater.onUpdateAvailable((info) => {
+    const api = window.gstcalc;
+    if (!api || !api.updater) {
+      return;
+    }
+
+    const { updater } = api;
+
+    updater.onUpdateAvailable((info) => {
       setUpdateAvailable(info);
       setIsChecking(false);
     });
 
-    window.gstcalc.updater.onUpdateNotAvailable(() => {
+    updater.onUpdateNotAvailable(() => {
       setUpdateAvailable(null);
       setIsChecking(false);
     });
 
-    window.gstcalc.updater.onDownloadProgress((progress) => {
+    updater.onDownloadProgress((progress) => {
       setDownloadProgress(progress);
     });
 
-    window.gstcalc.updater.onUpdateDownloaded((info) => {
+    updater.onUpdateDownloaded((info) => {
       setUpdateDownloaded(info);
     });
 
-    window.gstcalc.updater.onError((err) => {
+    updater.onError((err) => {
       setError(err);
       setIsChecking(false);
     });
   }, []);
 
   const handleCheckForUpdates = () => {
+    const api = window.gstcalc;
+    if (!api) {
+      return;
+    }
+
     setIsChecking(true);
     setError(null);
     setUpdateAvailable(null);
     setDownloadProgress(null);
     setUpdateDownloaded(null);
-    window.gstcalc.checkForUpdates();
+    api.checkForUpdates();
   };
 
   const handleRelaunch = () => {
-    window.gstcalc.app.relaunch();
+    const api = window.gstcalc;
+    if (!api) {
+      return;
+    }
+
+    api.app.relaunch();
   };
+
+  if (!hasElectronApi) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>App Updater</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-slate-600">
+            Updates are managed by the packaged desktop application. Run the installer build of
+            GSTCalc to receive automatic updates.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

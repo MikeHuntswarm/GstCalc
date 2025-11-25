@@ -64,7 +64,7 @@ async function fetchData(): Promise<AtoData> {
   throw new Error(errorMessage);
 }
 
-export const useAtoStore = create<AtoState>((set, get) => ({
+export const useAtoStore = create<AtoState>((set, _get) => ({
   data: null,
   status: 'loading',
   error: null,

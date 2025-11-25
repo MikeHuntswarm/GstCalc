@@ -19,7 +19,7 @@ import { formatCurrency, formatPercent } from '@/lib/utils';
 import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
 import { sendNotification } from '@/lib/notifications';
 import { useAtoStore } from '@/store/ato';
-import { useRemindersStore, formatReminderDate } from '@/store/reminders';
+import { useRemindersStore } from '@/store/reminders';
 
 export function BusinessTools() {
   const {
@@ -68,7 +68,10 @@ export function BusinessTools() {
   const strategies = taxPlanning?.strategies ?? [];
   const instantAsset = smallBusiness?.instantAssetWriteOff;
   const simplifiedDepreciation = smallBusiness?.simplifiedDepreciation;
-  const gicRates = interestRates?.generalInterestCharge.quarterlyRates ?? [];
+  const gicRates = useMemo(
+    () => interestRates?.generalInterestCharge.quarterlyRates ?? [],
+    [interestRates?.generalInterestCharge.quarterlyRates],
+  );
   const benchmarkRates = interestRates?.benchmarkInterest?.quarterlyRates ?? [];
 
   const upcomingGic = useMemo(() => {
@@ -117,7 +120,12 @@ export function BusinessTools() {
   };
 
   if (!baseRate || !fullRate || !penalties) {
-    return null;
+    return (
+      <Alert variant="warning">
+        Company tax and penalty data is unavailable. Try refreshing ATO rates and check your
+        network connection before using the business tools.
+      </Alert>
+    );
   }
 
   return (
@@ -239,8 +247,8 @@ export function BusinessTools() {
             </Button>
           </div>
           <p className="text-xs text-slate-500">
-            Tip: lodge and pay by the due date to avoid Failure to Lodge penalties and daily
-            interest charges.
+            These BAS figures are indicative only and based on the inputs you provide. Always
+            confirm 1A/1B labels and amounts in your actual BAS form and lodged records.
           </p>
         </CardContent>
       </Card>
@@ -362,7 +370,9 @@ export function BusinessTools() {
               <p className="mt-3 text-sm text-red-800">{penalties.failureToLodge.description}</p>
               <p className="mt-2 text-xs text-red-700">
                 Penalty unit value: {formatCurrency(penalties.failureToLodge.unitValue)}. Capped at{' '}
-                {` ${penalties.failureToLodge.maxUnits} `}units for small entities.
+                {` ${penalties.failureToLodge.maxUnits} `}units for small entities. This is an
+                estimate only — the ATO may remit or adjust penalties based on your lodgement
+                history and any remission requests.
               </p>
             </div>
           </div>

@@ -1,6 +1,6 @@
 {
   "name": "gstcalc",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Australian Tax & GST calculator desktop application built with Electron and React.",
   "author": "",
   "license": "ISC",
