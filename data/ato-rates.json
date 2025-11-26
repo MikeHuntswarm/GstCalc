@@ -1,14 +1,25 @@
 {
   "metadata": {
     "source": "https://www.ato.gov.au",
-    "lastUpdated": "2024-07-01"
+    "lastUpdated": "2025-07-01"
   },
   "gst": {
     "standardRate": 0.1,
-    "notes": "Default GST rate applied to most taxable supplies across Australia."
+    "notes": "GST remains 10% on most taxable supplies per current ATO guidance; confirm concessions or input-taxed treatments before lodging."
   },
   "individual": {
     "financialYears": [
+      {
+        "year": "2025-26",
+        "effectiveFrom": "2025-07-01",
+        "taxBrackets": [
+          { "threshold": 0, "baseTax": 0, "rate": 0 },
+          { "threshold": 18201, "baseTax": 0, "rate": 0.16 },
+          { "threshold": 45001, "baseTax": 4288, "rate": 0.3 },
+          { "threshold": 135001, "baseTax": 31288, "rate": 0.37 },
+          { "threshold": 190001, "baseTax": 51638, "rate": 0.45 }
+        ]
+      },
       {
         "year": "2024-25",
         "effectiveFrom": "2024-07-01",
@@ -34,26 +45,26 @@
     ],
     "medicare": {
       "levyRate": 0.02,
-      "lowIncomeThreshold": 26000,
+      "lowIncomeThreshold": 27222,
       "taperRate": 0.1,
-      "familyThreshold": 43767,
-      "notes": "Levy phases in at 10% of taxable income above the threshold until it reaches 2% of taxable income. Additional thresholds apply for families and seniors."
+      "familyThreshold": 45907,
+      "notes": "Singles pay no levy below $27,222 (SAPTO $43,020). Families pay no levy below $45,907 (SAPTO $59,886) with an extra $4,216 per dependent child; thresholds taper in at 10% until the full 2% levy applies."
     },
     "offsets": [
       {
         "name": "Low Income Tax Offset (LITO)",
-        "description": "Up to $700 for incomes up to $37,500, reducing progressively to nil at $66,667.",
+        "description": "Up to $700 for incomes up to $37,500 in 2024-25, reducing progressively to nil at $66,667.",
         "maxAmount": 700,
         "incomeLimit": 66667
       },
       {
         "name": "Low and Middle Income Tax Offset (LMITO)",
-        "description": "Currently legislated as nil for 2024-25. Retained for historical comparisons.",
+        "description": "Currently legislated as nil for 2024-25 and later. Retained for historical comparisons.",
         "maxAmount": 0
       },
       {
         "name": "Senior Australians and Pensioners Tax Offset",
-        "description": "Available subject to eligibility tests and income limits that vary by status. Refer to tax agent for personalised assessment.",
+        "description": "Available subject to eligibility tests and income limits that vary by status. Refer to a tax agent for personalised assessment.",
         "maxAmount": 0
       }
     ]
@@ -72,13 +83,13 @@
   },
   "penalties": {
     "failureToLodge": {
-      "unitValue": 313,
+      "unitValue": 330,
       "maxUnits": 5,
       "frequencyDays": 28,
-      "description": "Failure to Lodge (FTL) penalties apply for late BAS and income tax returns. One penalty unit is charged for each 28 day period or part thereof that a document is overdue, up to a maximum of five units for small businesses."
+      "description": "Failure to Lodge penalties accrue at one $330 penalty unit per 28 days (small entities, capped at 5 units). Medium entities pay double and large entities pay five times the base amount; remission depends on compliance history."
     },
     "generalInterestCharge": {
-      "description": "General Interest Charge (GIC) accrues on outstanding tax debts on a daily compounding basis. The rate is updated quarterly based on the 90-day bank bill rate plus a premium."
+      "description": "General Interest Charge (GIC) accrues daily on outstanding tax debts and is no longer deductible for amounts incurred on or after 1 July 2025."
     }
   },
   "smallBusiness": {
@@ -91,7 +102,7 @@
     "simplifiedDepreciation": {
       "threshold": 10000000,
       "firstYearRate": 0.15,
-      "subsequentRate": 0.30,
+      "subsequentRate": 0.3,
       "eligibility": "Available to small businesses using the simplified depreciation rules with aggregated turnover under $10 million.",
       "notes": "When the closing pool balance falls below the instant asset write-off threshold it can be written off in full."
     },
@@ -99,18 +110,56 @@
   },
   "interestRates": {
     "generalInterestCharge": {
-      "description": "General Interest Charge is applied to tax debts daily using compounding interest. Rates change each quarter based on the 90-day bank bill rate plus a 7 percentage point uplift.",
+      "description": "General Interest Charge is applied using daily compounding interest. Rates change each quarter based on the 90-day bank bill rate plus a 7 percentage point uplift.",
       "quarterlyRates": [
-        { "label": "July - September 2024", "rate": 0.1173, "effectiveFrom": "2024-07-01", "effectiveTo": "2024-09-30" },
-        { "label": "October - December 2024", "rate": 0.1168, "effectiveFrom": "2024-10-01", "effectiveTo": "2024-12-31" },
-        { "label": "January - March 2025", "rate": 0.1165, "effectiveFrom": "2025-01-01", "effectiveTo": "2025-03-31" }
+        {
+          "label": "July - September 2025",
+          "rate": 0.1078,
+          "effectiveFrom": "2025-07-01",
+          "effectiveTo": "2025-09-30"
+        },
+        {
+          "label": "April - June 2025",
+          "rate": 0.1117,
+          "effectiveFrom": "2025-04-01",
+          "effectiveTo": "2025-06-30"
+        },
+        {
+          "label": "January - March 2025",
+          "rate": 0.1165,
+          "effectiveFrom": "2025-01-01",
+          "effectiveTo": "2025-03-31"
+        },
+        {
+          "label": "October - December 2024",
+          "rate": 0.1168,
+          "effectiveFrom": "2024-10-01",
+          "effectiveTo": "2024-12-31"
+        },
+        {
+          "label": "July - September 2024",
+          "rate": 0.1173,
+          "effectiveFrom": "2024-07-01",
+          "effectiveTo": "2024-09-30"
+        }
       ]
     },
     "benchmarkInterest": {
       "description": "Division 7A benchmark interest rate applies to shareholder or associate loans to avoid deemed dividends.",
       "frankingNotes": "Use the benchmark rate to set minimum yearly repayments on complying Division 7A loans.",
       "quarterlyRates": [
-        { "label": "2024-25 income year", "rate": 0.0872, "effectiveFrom": "2024-07-01", "effectiveTo": "2025-06-30" }
+        {
+          "label": "2025-26 income year",
+          "rate": 0.0837,
+          "effectiveFrom": "2025-07-01",
+          "effectiveTo": "2026-06-30"
+        },
+        {
+          "label": "2024-25 income year",
+          "rate": 0.0872,
+          "effectiveFrom": "2024-07-01",
+          "effectiveTo": "2025-06-30"
+        }
       ]
     }
   }

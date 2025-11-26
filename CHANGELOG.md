@@ -2,7 +2,10 @@
 
 All notable changes to this project will be documented in this file. Run `npm run release:prepare` to append new entries automatically.
 
-## [0.1.5] - 2025-11-25
+-## [0.1.5] - 2025-11-25
+- feat: Refresh ATO datasets with GST 10% confirmation, 2025-26 resident tax brackets, Medicare low-income thresholds, $330 Failure to Lodge penalties, and the latest GIC/Division 7A benchmark rates sourced from [ATO GST guidance](https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/how-gst-works), [resident income tax rates](https://www.ato.gov.au/rates/individual-income-tax-rates/), [Medicare levy reduction pages](https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners) / [family thresholds](https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income), [Failure to lodge penalty guidance](https://www.ato.gov.au/individuals-and-families/paying-the-ato/interest-and-penalties/penalties/failure-to-lodge-on-time-penalty), [GIC rates](https://www.ato.gov.au/Rates/General-interest-charge-%28GIC%29-rates/), and the [Division 7A benchmark interest rate](https://www.ato.gov.au/tax-rates-and-codes/division-7a-benchmark-interest-rate/).
+- fix: Harden AnnualBusinessTax UI to expose deterministic data-testids for each card, summary block, and checklist detail so specs can target unique nodes.
+- test: Tighten AnnualBusinessTax and incomeTax specs and rerun `corepack pnpm vitest run src/components/modules/AnnualBusinessTax.test.tsx src/lib/calculations/incomeTax.test.ts --reporter=dot` to confirm green.
 - feat: Add unit tests for GST calculations and input validation, including error handling for invalid inputs
 - feat: Add comprehensive implementation plan for GSTCalc project with prioritized tasks and expected outcomes
 - feat: Enhance ATO data fetching with multiple loading strategies and improve type definitions for Electron API

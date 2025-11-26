@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { formatCurrency, formatPercent } from '@/lib/utils';
 import { AnnualBusinessTax } from './AnnualBusinessTax';
 
 // Mock the ATO store
@@ -17,6 +18,26 @@ const mockAtoData = {
     },
   },
 };
+
+const ELIGIBLE_SCENARIO = {
+  turnover: '40000000',
+  passivePercent: '50',
+  taxableIncome: '400000',
+};
+
+const HIGH_TURNOVER_VALUE = '60000000';
+const HIGH_PASSIVE_PERCENT = '85';
+
+const taxableIncomeValue = Number(ELIGIBLE_SCENARIO.taxableIncome);
+const baseRateTaxValue = taxableIncomeValue * mockAtoData.company.baseRateEntity.rate;
+const fullRateTaxValue = taxableIncomeValue * mockAtoData.company.fullRate.rate;
+const savingsValue = fullRateTaxValue - baseRateTaxValue;
+const savingsPercentValue = savingsValue / fullRateTaxValue;
+const afterTaxProfitValue = taxableIncomeValue - baseRateTaxValue;
+const baseRateTurnoverCapLabel = formatCurrency(
+  mockAtoData.company.baseRateEntity.baseRateTurnoverCap,
+);
+const passiveIncomeAllowanceLabel = `${mockAtoData.company.baseRateEntity.passiveIncomeMaxPercent}%`;
 
 // Mock Zustand store
 vi.mock('@/store/ato', () => ({
@@ -47,12 +68,22 @@ describe('AnnualBusinessTax', () => {
     render(<AnnualBusinessTax />);
 
     // Fill in inputs for base rate eligibility
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '40000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '50' } });
-    fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '400000' } });
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: ELIGIBLE_SCENARIO.turnover },
+    });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: ELIGIBLE_SCENARIO.passivePercent },
+    });
+    fireEvent.change(screen.getByLabelText('Taxable income for the year'), {
+      target: { value: ELIGIBLE_SCENARIO.taxableIncome },
+    });
+
+    const baseRateCard = screen.getByTestId('card-base-rate');
 
     await waitFor(() => {
-      expect(screen.getByText('$100,000.00')).toBeInTheDocument(); // 400000 * 0.25
+      expect(
+        within(baseRateCard).getByText(formatCurrency(baseRateTaxValue)),
+      ).toBeInTheDocument();
     });
   });
 
@@ -60,12 +91,22 @@ describe('AnnualBusinessTax', () => {
     render(<AnnualBusinessTax />);
 
     // Fill in inputs exceeding turnover cap
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '60000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '50' } });
-    fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '400000' } });
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: HIGH_TURNOVER_VALUE },
+    });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: ELIGIBLE_SCENARIO.passivePercent },
+    });
+    fireEvent.change(screen.getByLabelText('Taxable income for the year'), {
+      target: { value: ELIGIBLE_SCENARIO.taxableIncome },
+    });
+
+    const fullRateCard = screen.getByTestId('card-full-rate');
 
     await waitFor(() => {
-      expect(screen.getByText('$120,000.00')).toBeInTheDocument(); // 400000 * 0.30
+      expect(
+        within(fullRateCard).getByText(formatCurrency(fullRateTaxValue)),
+      ).toBeInTheDocument();
     });
   });
 
@@ -73,12 +114,22 @@ describe('AnnualBusinessTax', () => {
     render(<AnnualBusinessTax />);
 
     // Fill in inputs exceeding passive income limit
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '40000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '85' } });
-    fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '400000' } });
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: ELIGIBLE_SCENARIO.turnover },
+    });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: HIGH_PASSIVE_PERCENT },
+    });
+    fireEvent.change(screen.getByLabelText('Taxable income for the year'), {
+      target: { value: ELIGIBLE_SCENARIO.taxableIncome },
+    });
+
+    const fullRateCard = screen.getByTestId('card-full-rate');
 
     await waitFor(() => {
-      expect(screen.getByText('$120,000.00')).toBeInTheDocument(); // 400000 * 0.30
+      expect(
+        within(fullRateCard).getByText(formatCurrency(fullRateTaxValue)),
+      ).toBeInTheDocument();
     });
   });
 
@@ -86,13 +137,17 @@ describe('AnnualBusinessTax', () => {
     render(<AnnualBusinessTax />);
 
     // Fill in inputs that don't qualify for base rate
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '60000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '85' } });
-    fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '400000' } });
-
-    await waitFor(() => {
-      expect(screen.getByText('Base rate entity criteria not met')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: HIGH_TURNOVER_VALUE },
     });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: HIGH_PASSIVE_PERCENT },
+    });
+    fireEvent.change(screen.getByLabelText('Taxable income for the year'), {
+      target: { value: ELIGIBLE_SCENARIO.taxableIncome },
+    });
+
+    await screen.findByText('Base rate entity criteria not met');
   });
 
   it('displays eligibility checklist with correct statuses', async () => {
@@ -102,55 +157,103 @@ describe('AnnualBusinessTax', () => {
     expect(screen.getAllByText('Pending')).toHaveLength(3);
 
     // Fill in some inputs
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '40000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '50' } });
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: ELIGIBLE_SCENARIO.turnover },
+    });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: ELIGIBLE_SCENARIO.passivePercent },
+    });
 
     await waitFor(() => {
-      expect(screen.getByText('Aggregated turnover remains within the $50,000,000.00 base rate threshold.')).toBeInTheDocument();
-      expect(screen.getByText('Passive income is within the 80% allowance.')).toBeInTheDocument();
+      expect(screen.getByTestId('checklist-detail-turnover')).toHaveTextContent(
+        `Turnover remains within the ${baseRateTurnoverCapLabel} base rate threshold.`,
+      );
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('checklist-detail-passive-income')).toHaveTextContent(
+        `Passive income is within the ${passiveIncomeAllowanceLabel} allowance.`,
+      );
     });
 
     // Fill taxable income
-    fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '400000' } });
+    fireEvent.change(screen.getByLabelText('Taxable income for the year'), {
+      target: { value: ELIGIBLE_SCENARIO.taxableIncome },
+    });
 
     await waitFor(() => {
-      expect(screen.getByText('Taxable income captured — estimates are up to date.')).toBeInTheDocument();
+      expect(screen.getByTestId('checklist-detail-taxable-income')).toHaveTextContent(
+        'Taxable income captured — estimates are up to date.',
+      );
     });
   });
 
   it('shows savings information when eligible for base rate', async () => {
     render(<AnnualBusinessTax />);
 
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '40000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '50' } });
-    fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '400000' } });
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: ELIGIBLE_SCENARIO.turnover },
+    });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: ELIGIBLE_SCENARIO.passivePercent },
+    });
+    fireEvent.change(screen.getByLabelText('Taxable income for the year'), {
+      target: { value: ELIGIBLE_SCENARIO.taxableIncome },
+    });
+
+    const summarySection = screen.getByTestId('tax-summary');
 
     await waitFor(() => {
-      expect(screen.getByText('Estimated savings vs full rate: $20,000.00')).toBeInTheDocument();
+      expect(
+        within(summarySection).getByText(
+          (content) =>
+            content.includes('Estimated savings vs full rate') &&
+            content.includes(formatCurrency(savingsValue)) &&
+            content.includes(formatPercent(savingsPercentValue)),
+        ),
+      ).toBeInTheDocument();
     });
   });
 
   it('displays after-tax profit estimate', async () => {
     render(<AnnualBusinessTax />);
 
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '40000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '50' } });
-    fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '400000' } });
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: ELIGIBLE_SCENARIO.turnover },
+    });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: ELIGIBLE_SCENARIO.passivePercent },
+    });
+    fireEvent.change(screen.getByLabelText('Taxable income for the year'), {
+      target: { value: ELIGIBLE_SCENARIO.taxableIncome },
+    });
+
+    const summarySection = screen.getByTestId('tax-summary');
 
     await waitFor(() => {
-      expect(screen.getByText('After-tax profit estimate: $300,000.00')).toBeInTheDocument(); // 400000 - 100000
+      expect(
+        within(summarySection).getByText(
+          `After-tax profit estimate: ${formatCurrency(afterTaxProfitValue)}`,
+        ),
+      ).toBeInTheDocument();
     });
   });
 
   it('handles zero taxable income correctly', async () => {
     render(<AnnualBusinessTax />);
 
-    fireEvent.change(screen.getByLabelText('Aggregated turnover'), { target: { value: '40000000' } });
-    fireEvent.change(screen.getByLabelText('Passive income %'), { target: { value: '50' } });
+    fireEvent.change(screen.getByLabelText('Aggregated turnover'), {
+      target: { value: ELIGIBLE_SCENARIO.turnover },
+    });
+    fireEvent.change(screen.getByLabelText('Passive income %'), {
+      target: { value: ELIGIBLE_SCENARIO.passivePercent },
+    });
     fireEvent.change(screen.getByLabelText('Taxable income for the year'), { target: { value: '0' } });
 
+    const summarySection = screen.getByTestId('tax-summary');
+
     await waitFor(() => {
-      expect(screen.getByText('$0.00')).toBeInTheDocument();
+      expect(summarySection).toHaveTextContent('Estimated company tax payable');
+      expect(summarySection).toHaveTextContent(formatCurrency(0));
     });
   });
 

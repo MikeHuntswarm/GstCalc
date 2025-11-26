@@ -63,8 +63,8 @@ export default function App() {
                 GSTCalc
               </span>
               <Badge variant="outline">
-                Up-to-date rates{' '}
-                {lastUpdated ? new Date(lastUpdated).toLocaleDateString('en-AU') : ''}
+                ATO data effective{' '}
+                {lastUpdated ? new Date(lastUpdated).toLocaleDateString('en-AU') : 'Pending'}
               </Badge>
             </div>
             <p className="mt-2 max-w-xl text-sm text-slate-600">

@@ -1,5 +1,7 @@
 node_modules
 release
+# Generated Electron release artifacts
+release-*/
 dist
 dist-electron
 .DS_Store

@@ -11,6 +11,7 @@ import { useAtoStore } from '@/store/ato';
 type ChecklistStatus = 'ok' | 'issue' | 'pending';
 
 type ChecklistItem = {
+  id: string;
   label: string;
   status: ChecklistStatus;
   detail: string;
@@ -58,6 +59,23 @@ export function AnnualBusinessTax() {
   const [turnover, setTurnover] = useState('');
   const [taxableIncome, setTaxableIncome] = useState('');
   const [passiveIncomeRatio, setPassiveIncomeRatio] = useState('');
+
+  function handlePassiveIncomeChange(rawValue: string) {
+    if (rawValue.trim().length === 0) {
+      setPassiveIncomeRatio('');
+      return;
+    }
+
+    const numeric = Number.parseFloat(rawValue);
+
+    if (Number.isNaN(numeric)) {
+      setPassiveIncomeRatio('');
+      return;
+    }
+
+    const clamped = Math.min(100, Math.max(0, numeric));
+    setPassiveIncomeRatio(clamped.toString());
+  }
 
   const parsedTurnover = useMemo(() => Math.max(0, parseAmount(turnover)), [turnover]);
   const parsedTaxableIncome = useMemo(
@@ -147,6 +165,7 @@ export function AnnualBusinessTax() {
         : 'ok';
 
     items.push({
+      id: 'turnover',
       label: 'Aggregated turnover',
       status: turnoverStatus,
       detail:
@@ -164,6 +183,7 @@ export function AnnualBusinessTax() {
         : 'ok';
 
     items.push({
+      id: 'passive-income',
       label: 'Passive income mix',
       status: passiveStatus,
       detail:
@@ -177,6 +197,7 @@ export function AnnualBusinessTax() {
     const taxableStatus: ChecklistStatus = hasTaxableIncomeInput ? 'ok' : 'pending';
 
     items.push({
+      id: 'taxable-income',
       label: 'Taxable income prepared',
       status: taxableStatus,
       detail:
@@ -241,7 +262,7 @@ export function AnnualBusinessTax() {
                 inputMode="decimal"
                 placeholder="e.g. 35"
                 value={passiveIncomeRatio}
-                onChange={(event) => setPassiveIncomeRatio(event.target.value)}
+                onChange={(event) => handlePassiveIncomeChange(event.target.value)}
               />
               <p className="text-xs text-slate-500">
                 Dividends, interest, rent and similar revenue as a % of total income.
@@ -307,6 +328,7 @@ export function AnnualBusinessTax() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div
+              data-testid="card-base-rate"
               className={`rounded-lg border p-4 ${
                 qualifiesForBaseRate
                   ? 'border-emerald-300 bg-emerald-50'
@@ -327,6 +349,7 @@ export function AnnualBusinessTax() {
               </p>
             </div>
             <div
+              data-testid="card-full-rate"
               className={`rounded-lg border p-4 ${
                 qualifiesForBaseRate
                   ? 'border-slate-200 bg-white shadow-sm'
@@ -346,7 +369,10 @@ export function AnnualBusinessTax() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <div
+            data-testid="tax-summary"
+            className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700"
+          >
             <p>
               Recommended rate:{' '}
               <span className="font-semibold">{formatPercent(recommendedRate)}</span> (
@@ -381,7 +407,11 @@ export function AnnualBusinessTax() {
             <p className="text-sm font-semibold text-slate-800">Eligibility checkpoints</p>
             <ul className="space-y-3">
               {eligibilityChecklist.map((item) => (
-                <li key={item.label} className="flex items-start gap-3 rounded-md bg-slate-50 p-3">
+                <li
+                  key={item.id}
+                  data-testid={`checklist-item-${item.id}`}
+                  className="flex items-start gap-3 rounded-md bg-slate-50 p-3"
+                >
                   <span
                     className={`inline-flex h-6 items-center rounded-full px-3 text-xs font-semibold ${CHECKLIST_STATUS_STYLES[item.status]}`}
                   >
@@ -389,7 +419,12 @@ export function AnnualBusinessTax() {
                   </span>
                   <div>
                     <p className="text-xs font-semibold text-slate-600">{item.label}</p>
-                    <p className="mt-1 text-xs text-slate-500">{item.detail}</p>
+                    <p
+                      data-testid={`checklist-detail-${item.id}`}
+                      className="mt-1 text-xs text-slate-500"
+                    >
+                      {item.detail}
+                    </p>
                   </div>
                 </li>
               ))}
