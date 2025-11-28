@@ -16,7 +16,7 @@ import { useAtoStore } from '@/store/ato';
 import { useRemindersStore } from '@/store/reminders';
 import { formatPercent } from '@/lib/utils';
 
-const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.5';
+const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.6';
 
 function LoadingState({ message }: { message: string }) {
   return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
