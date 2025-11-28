@@ -13,7 +13,15 @@ import { useAtoStore } from '@/store/ato';
 
 type Mode = 'exclusive' | 'inclusive';
 
-type CopyTarget = 'exclusive' | 'gst' | 'inclusive' | null;
+type CopyTarget = 'exclusive' | 'gst' | 'inclusive' | 'summary' | null;
+
+type SavedScenario = {
+  id: string;
+  label: string;
+  mode: Mode;
+  amountInput: string;
+  rateInput: string;
+};
 
 export function GstCalculator() {
   const {
@@ -28,12 +36,37 @@ export function GstCalculator() {
   const [rateDirty, setRateDirty] = useState(false);
   const [copyTarget, setCopyTarget] = useState<CopyTarget>(null);
 
+  const [scenarios, setScenarios] = useState<SavedScenario[]>([]);
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem('gstcalc:scenarios');
+      if (raw) {
+        const parsed = JSON.parse(raw) as SavedScenario[];
+        if (Array.isArray(parsed)) {
+          setScenarios(parsed);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load GST scenarios from storage', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (!rateDirty) {
       const nextRate = (defaultRate * 100).toFixed(2);
       setRateInput((current) => (current !== nextRate ? nextRate : current));
     }
   }, [defaultRate, rateDirty]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('gstcalc:scenarios', JSON.stringify(scenarios));
+    } catch (error) {
+      console.error('Failed to persist GST scenarios to storage', error);
+    }
+  }, [scenarios]);
 
   const amount = useMemo(() => {
     const value = parseFloat(amountInput.replace(/[^0-9.-]/g, ''));
@@ -55,6 +88,48 @@ export function GstCalculator() {
     [setAmountInput],
   );
 
+  const handleSaveScenario = useCallback(() => {
+    if (!amountInput.trim()) {
+      return;
+    }
+
+    const effectiveRate = rateInput || (defaultRate * 100).toFixed(2);
+    const label =
+      mode === 'exclusive'
+        ? `Ex-GST ${amountInput || 'amount'} @ ${effectiveRate}%`
+        : `Inc-GST ${amountInput || 'amount'} @ ${effectiveRate}%`;
+
+    const next: SavedScenario = {
+      id: String(Date.now()),
+      label,
+      mode,
+      amountInput,
+      rateInput,
+    };
+
+    setScenarios((current) => [next, ...current].slice(0, 10));
+    setSelectedScenarioId(next.id);
+  }, [amountInput, defaultRate, mode, rateInput]);
+
+  const handleApplyScenario = useCallback(
+    (id: string) => {
+      const scenario = scenarios.find((item) => item.id === id);
+      if (!scenario) return;
+
+      setMode(scenario.mode);
+      setAmountInput(scenario.amountInput);
+      setRateDirty(true);
+      setRateInput(scenario.rateInput);
+      setSelectedScenarioId(scenario.id);
+    },
+    [scenarios],
+  );
+
+  const handleDeleteScenario = useCallback((id: string) => {
+    setScenarios((current) => current.filter((item) => item.id !== id));
+    setSelectedScenarioId((current) => (current === id ? null : current));
+  }, []);
+
   const handleCopy = useCallback(async (target: Exclude<CopyTarget, null>, value: number) => {
     try {
       await navigator.clipboard.writeText(value.toFixed(2));
@@ -64,6 +139,26 @@ export function GstCalculator() {
       console.error('Clipboard copy failed', error);
     }
   }, []);
+
+  const handleCopySummary = useCallback(async () => {
+    try {
+      const summary = [
+        `GST summary`,
+        mode === 'exclusive' ? 'Input: ex-GST amount' : 'Input: inc-GST amount',
+        `Value: ${amountInput || '0'}`,
+        `Rate: ${(rate * 100).toFixed(2)}%`,
+        `Ex-GST: ${result.exclusive.toFixed(2)}`,
+        `GST: ${result.gst.toFixed(2)}`,
+        `Inc-GST: ${result.inclusive.toFixed(2)}`,
+      ].join(' | ');
+
+      await navigator.clipboard.writeText(summary);
+      setCopyTarget('summary');
+      setTimeout(() => setCopyTarget(null), 2000);
+    } catch (error) {
+      console.error('Summary copy failed', error);
+    }
+  }, [amountInput, mode, rate, result.exclusive, result.gst, result.inclusive]);
 
   return (
     <Card>
@@ -148,6 +243,52 @@ export function GstCalculator() {
           </div>
         </div>
 
+        <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase text-slate-500">Saved scenarios</p>
+            <Button type="button" variant="outline" size="sm" onClick={handleSaveScenario}>
+              Save current
+            </Button>
+          </div>
+          {scenarios.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              Save frequently used GST calculations to reuse them later.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {scenarios.map((scenario) => (
+                <div
+                  key={scenario.id}
+                  className="flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs"
+                >
+                  <button
+                    type="button"
+                    className="flex flex-1 flex-col items-start text-left text-slate-700 hover:text-slate-900"
+                    onClick={() => handleApplyScenario(scenario.id)}
+                  >
+                    <span className="font-medium">{scenario.label}</span>
+                    <span className="text-[11px] text-slate-500">
+                      {scenario.mode === 'exclusive' ? 'Ex-GST' : 'Inc-GST'} · Amount{' '}
+                      {scenario.amountInput || '0'} · Rate{' '}
+                      {scenario.rateInput || (defaultRate * 100).toFixed(2)}%
+                    </span>
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-slate-500 hover:text-slate-900"
+                    onClick={() => handleDeleteScenario(scenario.id)}
+                    aria-label="Delete saved scenario"
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="grid gap-4 rounded-lg border border-slate-200 bg-slate-50 p-6 md:grid-cols-3">
           <div className="space-y-2">
             <p className="text-xs uppercase text-slate-500">Ex-GST amount</p>
@@ -196,6 +337,17 @@ export function GstCalculator() {
             </Button>
           </div>
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mt-2"
+          onClick={handleCopySummary}
+        >
+          <CopyIcon className="mr-1 h-3.5 w-3.5" />
+          {copyTarget === 'summary' ? 'Summary copied' : 'Copy summary'}
+        </Button>
 
         <Alert variant="warning">
           Lodging your BAS late can attract Failure to Lodge penalties and General Interest Charge.

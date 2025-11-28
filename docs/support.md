@@ -32,6 +32,15 @@ The packaged desktop app uses `electron-updater` and GitHub Releases.
 - From the **App Updates** tab, click **Check for Updates** to force a manual check.
 - If no updates are found but you believe a newer version exists, confirm that you are running the latest installer from the project’s Releases page.
 
+### Catch-up planner
+
+The **Catch-up planner** helps you track missed BAS quarters and annual company tax amounts.
+
+- Your entries (type, quarter, year, amount, notes and due date) are saved locally in the app’s storage so they are there next time you open GSTCalc on the same machine.
+- You can clear the planner by removing the `gstcalc_missed_lodgements_v2` key from application storage or by uninstalling the app.
+- Penalty amounts shown on this page are estimates based only on the current Failure to Lodge settings and **do not** include General Interest Charge (GIC) or any payment arrangements.
+- Use the planner as a cash-flow aid and confirm actual amounts with the ATO or your tax agent before paying.
+
 ## Privacy & data handling
 
 GSTCalc is designed as a local desktop tool:

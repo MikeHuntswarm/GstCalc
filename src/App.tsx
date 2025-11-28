@@ -7,12 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { GstCalculator } from '@/components/modules/GstCalculator';
 import { IncomeTaxCalculator } from '@/components/modules/IncomeTaxCalculator';
 import { BusinessTools } from '@/components/modules/BusinessTools';
+import { MissedLodgements } from '@/components/modules/MissedLodgements';
 import { AnnualBusinessTax } from '@/components/modules/AnnualBusinessTax';
 import { Reminders } from '@/components/modules/Reminders';
 import { Updater } from '@/components/modules/Updater';
+import { OverviewDashboard } from '@/components/modules/OverviewDashboard';
 import { useAtoStore } from '@/store/ato';
 import { useRemindersStore } from '@/store/reminders';
 import { formatPercent } from '@/lib/utils';
+
+const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.5';
 
 function LoadingState({ message }: { message: string }) {
   return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
@@ -55,15 +59,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 text-slate-900">
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6 md:flex-row md:items-center md:justify-between">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex items-center gap-3">
               <span className="rounded-lg bg-blue-600 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-white">
                 GSTCalc
               </span>
               <Badge variant="outline">
-                ATO data effective{' '}
+                v{APP_VERSION} · ATO data effective{' '}
                 {lastUpdated ? new Date(lastUpdated).toLocaleDateString('en-AU') : 'Pending'}
               </Badge>
             </div>
@@ -102,14 +106,22 @@ export default function App() {
           </Alert>
         ) : null}
 
-        <Tabs defaultValue="individual" className="space-y-6">
-          <TabsList className="self-start">
-            <TabsTrigger value="individual">Individual tools</TabsTrigger>
-            <TabsTrigger value="business">Business tools</TabsTrigger>
-            <TabsTrigger value="annual-tax">Annual business tax</TabsTrigger>
-            <TabsTrigger value="reminders">Reminders</TabsTrigger>
-            <TabsTrigger value="updater">App Updates</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="inline-flex min-w-full self-start">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="individual">Individual tools</TabsTrigger>
+              <TabsTrigger value="business">Business tools</TabsTrigger>
+              <TabsTrigger value="catch-up">Catch-up planner</TabsTrigger>
+              <TabsTrigger value="annual-tax">Annual business tax</TabsTrigger>
+              <TabsTrigger value="reminders">Reminders</TabsTrigger>
+              <TabsTrigger value="updater">App Updates</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="overview" className="space-y-6">
+            <OverviewDashboard />
+          </TabsContent>
 
           <TabsContent value="individual" className="space-y-6">
             <GstCalculator />
@@ -131,6 +143,10 @@ export default function App() {
                 Company tax rates and penalty schedules are unavailable right now.
               </Alert>
             )}
+          </TabsContent>
+
+          <TabsContent value="catch-up" className="space-y-6">
+            <MissedLodgements />
           </TabsContent>
 
           <TabsContent value="annual-tax" className="space-y-6">

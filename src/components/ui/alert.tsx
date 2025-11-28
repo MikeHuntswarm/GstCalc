@@ -7,10 +7,10 @@ interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Alert({ className, variant = 'default', ...props }: AlertProps) {
   const variantClass =
     variant === 'warning'
-      ? 'border-amber-200 bg-amber-50 text-amber-900'
+      ? 'border-warning/40 bg-warning/10 text-warning-foreground'
       : variant === 'destructive'
-        ? 'border-red-200 bg-red-50 text-red-900'
-        : 'border-slate-200 bg-slate-50 text-slate-900';
+        ? 'border-danger/40 bg-danger/10 text-danger-foreground'
+        : 'border-muted bg-muted text-muted-foreground';
 
   return (
     <div

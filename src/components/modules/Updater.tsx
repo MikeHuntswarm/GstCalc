@@ -11,6 +11,7 @@ export function Updater() {
   const [updateDownloaded, setUpdateDownloaded] = useState<UpdateInfo | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
 
   const hasElectronApi =
     typeof window !== 'undefined' && typeof window.gstcalc !== 'undefined';
@@ -26,11 +27,13 @@ export function Updater() {
     updater.onUpdateAvailable((info) => {
       setUpdateAvailable(info);
       setIsChecking(false);
+      setLastCheckedAt(new Date());
     });
 
     updater.onUpdateNotAvailable(() => {
       setUpdateAvailable(null);
       setIsChecking(false);
+      setLastCheckedAt(new Date());
     });
 
     updater.onDownloadProgress((progress) => {
@@ -44,6 +47,7 @@ export function Updater() {
     updater.onError((err) => {
       setError(err);
       setIsChecking(false);
+      setLastCheckedAt(new Date());
     });
   }, []);
 
@@ -126,7 +130,18 @@ export function Updater() {
           </div>
         )}
         {!updateAvailable && !isChecking && !error && (
-          <p>You are on the latest version.</p>
+          <div className="space-y-1 text-sm text-slate-700">
+            <p>
+              {lastCheckedAt
+                ? 'No newer version was found.'
+                : 'Click “Check for Updates” to see if a newer version is available.'}
+            </p>
+            {lastCheckedAt && (
+              <p className="text-xs text-slate-500">
+                Last checked: {lastCheckedAt.toLocaleString('en-AU')}
+              </p>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>

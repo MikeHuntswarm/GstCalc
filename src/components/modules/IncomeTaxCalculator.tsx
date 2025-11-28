@@ -14,6 +14,14 @@ type Frequency = 'annual' | 'weekly';
 
 const QUICK_AMOUNTS = [60000, 85000, 120000];
 
+type IncomeScenario = {
+  id: string;
+  label: string;
+  year: string;
+  frequency: Frequency;
+  incomeInput: string;
+};
+
 export function IncomeTaxCalculator() {
   const {
     data: atoData,
@@ -29,6 +37,7 @@ export function IncomeTaxCalculator() {
   const [selectedYear, setSelectedYear] = useState(years[0]?.year ?? '');
   const [frequency, setFrequency] = useState<Frequency>('annual');
   const [incomeInput, setIncomeInput] = useState('');
+  const [scenarios, setScenarios] = useState<IncomeScenario[]>([]);
 
   useEffect(() => {
     if (years.length === 0) {
@@ -42,6 +51,32 @@ export function IncomeTaxCalculator() {
       return years[0].year;
     });
   }, [years]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = window.localStorage.getItem('gstcalc:income-scenarios');
+      if (raw) {
+        const parsed = JSON.parse(raw) as IncomeScenario[];
+        if (Array.isArray(parsed)) {
+          setScenarios(parsed);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load income tax scenarios from storage', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem('gstcalc:income-scenarios', JSON.stringify(scenarios));
+    } catch (error) {
+      console.error('Failed to persist income tax scenarios to storage', error);
+    }
+  }, [scenarios]);
 
   const yearData = useMemo(
     () => years.find((year) => year.year === selectedYear) ?? years[0],
@@ -65,6 +100,39 @@ export function IncomeTaxCalculator() {
     () => calculateMedicareLevy(parsedIncome, medicareConfig),
     [medicareConfig, parsedIncome],
   );
+
+  const saveScenario = () => {
+    if (!incomeInput.trim() || !selectedYear) {
+      return;
+    }
+
+    const label = `${selectedYear} · ${frequency === 'annual' ? 'Annual' : 'Weekly'} · ${
+      incomeInput || '0'
+    }`;
+
+    const next: IncomeScenario = {
+      id: String(Date.now()),
+      label,
+      year: selectedYear,
+      frequency,
+      incomeInput,
+    };
+
+    setScenarios((current) => [next, ...current].slice(0, 10));
+  };
+
+  const applyScenario = (id: string) => {
+    const scenario = scenarios.find((item) => item.id === id);
+    if (!scenario) return;
+
+    setSelectedYear(scenario.year);
+    setFrequency(scenario.frequency);
+    setIncomeInput(scenario.incomeInput);
+  };
+
+  const deleteScenario = (id: string) => {
+    setScenarios((current) => current.filter((item) => item.id !== id));
+  };
 
   return (
     <Card>
@@ -158,128 +226,173 @@ export function IncomeTaxCalculator() {
           </div>
         </div>
 
+        <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase text-slate-500">Saved scenarios</p>
+            <Button type="button" variant="outline" size="sm" onClick={saveScenario}>
+              Save current
+            </Button>
+          </div>
+          {scenarios.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              Save frequently used income scenarios to reuse them later.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {scenarios.map((scenario) => (
+                <div
+                  key={scenario.id}
+                  className="flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs"
+                >
+                  <button
+                    type="button"
+                    className="flex flex-1 flex-col items-start text-left text-slate-700 hover:text-slate-900"
+                    onClick={() => applyScenario(scenario.id)}
+                  >
+                    <span className="font-medium">{scenario.label}</span>
+                    <span className="text-[11px] text-slate-500">
+                      {scenario.year} · {scenario.frequency === 'annual' ? 'Annual' : 'Weekly'} · Income{' '}
+                      {scenario.incomeInput || '0'}
+                    </span>
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-slate-500 hover:text-slate-900"
+                    onClick={() => deleteScenario(scenario.id)}
+                    aria-label="Delete saved income scenario"
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {yearData && breakdown ? (
           <div className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-6">
-              <div>
-                <p className="text-xs uppercase text-slate-500">Estimated annual tax</p>
-                <p className="text-3xl font-semibold text-slate-900">
-                  {formatCurrency(breakdown.annualTax)}
+                <div>
+                  <p className="text-xs uppercase text-slate-500">Estimated annual tax</p>
+                  <p className="text-3xl font-semibold text-slate-900">
+                    {formatCurrency(breakdown.annualTax)}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs uppercase text-slate-500">Net annual income</p>
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(breakdown.netAnnualIncome)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-slate-500">Net weekly income</p>
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(breakdown.weeklyNetIncome)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-slate-500">Weekly PAYG withholding</p>
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(breakdown.weeklyTax)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-slate-500">Average tax rate</p>
+                    <p className="font-semibold text-slate-900">
+                      {formatPercent(breakdown.averageRate)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-inner">
+                <h4 className="text-lg font-semibold text-slate-900">How your tax is calculated</h4>
+                <p className="text-sm text-slate-600">
+                  Your income sits in the <strong>{formatPercent(breakdown.marginalRate)}</strong>{' '}
+                  marginal tax bracket. The calculation starts with base tax of{' '}
+                  {formatCurrency(breakdown.bracket.baseTax)} once your income exceeds
+                  {formatCurrency(breakdown.bracket.threshold)}, then applies the marginal rate to the
+                  remaining amount.
                 </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-xs uppercase text-slate-500">Net annual income</p>
-                  <p className="font-semibold text-slate-900">
-                    {formatCurrency(breakdown.netAnnualIncome)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase text-slate-500">Net weekly income</p>
-                  <p className="font-semibold text-slate-900">
-                    {formatCurrency(breakdown.weeklyNetIncome)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase text-slate-500">Weekly PAYG withholding</p>
-                  <p className="font-semibold text-slate-900">
-                    {formatCurrency(breakdown.weeklyTax)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase text-slate-500">Average tax rate</p>
-                  <p className="font-semibold text-slate-900">
-                    {formatPercent(breakdown.averageRate)}
-                  </p>
-                </div>
+                <ul className="space-y-2 text-sm text-slate-600">
+                  {yearData.taxBrackets.map((bracket, index) => {
+                    const nextThreshold = yearData.taxBrackets[index + 1]?.threshold;
+                    const rangeLabel = nextThreshold
+                      ? `${formatCurrency(bracket.threshold)} - ${formatCurrency(nextThreshold - 1)}`
+                      : `${formatCurrency(bracket.threshold)} and above`;
+                    const isActive = breakdown.bracket.threshold === bracket.threshold;
+                    return (
+                      <li
+                        key={`${yearData.year}-${bracket.threshold}`}
+                        className={`flex items-center justify-between rounded-md border px-3 py-2 ${
+                          isActive
+                            ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+                            : 'border-transparent bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        <span className="text-xs font-semibold uppercase tracking-wide">
+                          {rangeLabel}
+                        </span>
+                        <span className="text-sm font-medium">{formatPercent(bracket.rate)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             </div>
-            <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-inner">
-              <h4 className="text-lg font-semibold text-slate-900">How your tax is calculated</h4>
-              <p className="text-sm text-slate-600">
-                Your income sits in the <strong>{formatPercent(breakdown.marginalRate)}</strong>{' '}
-                marginal tax bracket. The calculation starts with base tax of{' '}
-                {formatCurrency(breakdown.bracket.baseTax)} once your income exceeds
-                {formatCurrency(breakdown.bracket.threshold)}, then applies the marginal rate to the
-                remaining amount.
-              </p>
-              <ul className="space-y-2 text-sm text-slate-600">
-                {yearData.taxBrackets.map((bracket, index) => {
-                  const nextThreshold = yearData.taxBrackets[index + 1]?.threshold;
-                  const rangeLabel = nextThreshold
-                    ? `${formatCurrency(bracket.threshold)} - ${formatCurrency(nextThreshold - 1)}`
-                    : `${formatCurrency(bracket.threshold)} and above`;
-                  const isActive = breakdown.bracket.threshold === bracket.threshold;
-                  return (
-                    <li
-                      key={`${yearData.year}-${bracket.threshold}`}
-                      className={`flex items-center justify-between rounded-md border px-3 py-2 ${
-                        isActive
-                          ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
-                          : 'border-transparent bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <span className="text-xs font-semibold uppercase tracking-wide">
-                        {rangeLabel}
-                      </span>
-                      <span className="text-sm font-medium">{formatPercent(bracket.rate)}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-emerald-900">Medicare levy estimate</p>
-                <Badge variant="outline">
-                  Effective {formatPercent(medicareLevy.effectiveRate)}
-                </Badge>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-emerald-900">Medicare levy estimate</p>
+                  <Badge variant="outline">
+                    Effective {formatPercent(medicareLevy.effectiveRate)}
+                  </Badge>
+                </div>
+                <p className="text-2xl font-semibold text-emerald-900">
+                  {formatCurrency(medicareLevy.amount)}
+                </p>
+                <p className="text-xs text-emerald-800">
+                  Based on a {medicareConfig ? formatPercent(medicareConfig.levyRate) : '0%'} levy with
+                  a low-income threshold of{' '}
+                  {medicareConfig ? formatCurrency(medicareConfig.lowIncomeThreshold) : '$0.00'}.
+                </p>
+                {medicareConfig?.notes ? (
+                  <p className="text-xs text-emerald-700">{medicareConfig.notes}</p>
+                ) : null}
               </div>
-              <p className="text-2xl font-semibold text-emerald-900">
-                {formatCurrency(medicareLevy.amount)}
-              </p>
-              <p className="text-xs text-emerald-800">
-                Based on a {medicareConfig ? formatPercent(medicareConfig.levyRate) : '0%'} levy with
-                a low-income threshold of{' '}
-                {medicareConfig ? formatCurrency(medicareConfig.lowIncomeThreshold) : '$0.00'}.
-              </p>
-              {medicareConfig?.notes ? (
-                <p className="text-xs text-emerald-700">{medicareConfig.notes}</p>
+
+              {offsets.length > 0 ? (
+                <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-6">
+                  <p className="text-sm font-semibold text-slate-800">Relevant tax offsets</p>
+                  <ul className="space-y-3 text-xs text-slate-600">
+                    {offsets.map((offset) => (
+                      <li key={offset.name} className="rounded-md bg-slate-50 p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-slate-700">{offset.name}</span>
+                          <Badge variant="outline">
+                            Up to {formatCurrency(offset.maxAmount)}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-slate-600">{offset.description}</p>
+                        {offset.incomeLimit ? (
+                          <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-500">
+                            Phases out above {formatCurrency(offset.incomeLimit)}
+                          </p>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">
+                    Confirm eligibility with the ATO or a registered tax agent.
+                  </p>
+                </div>
               ) : null}
             </div>
-
-            {offsets.length > 0 ? (
-              <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-6">
-                <p className="text-sm font-semibold text-slate-800">Relevant tax offsets</p>
-                <ul className="space-y-3 text-xs text-slate-600">
-                  {offsets.map((offset) => (
-                    <li key={offset.name} className="rounded-md bg-slate-50 p-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-700">{offset.name}</span>
-                        <Badge variant="outline">
-                          Up to {formatCurrency(offset.maxAmount)}
-                        </Badge>
-                      </div>
-                      <p className="mt-1 text-slate-600">{offset.description}</p>
-                      {offset.incomeLimit ? (
-                        <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-500">
-                          Phases out above {formatCurrency(offset.incomeLimit)}
-                        </p>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-[11px] uppercase tracking-wide text-slate-500">
-                  Confirm eligibility with the ATO or a registered tax agent.
-                </p>
-              </div>
-            ) : null}
           </div>
-        </div>
         ) : (
           <Alert variant="destructive">
             Unable to load tax brackets for the selected financial year.
@@ -289,4 +402,3 @@ export function IncomeTaxCalculator() {
     </Card>
   );
 }
-

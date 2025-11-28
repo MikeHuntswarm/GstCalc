@@ -382,7 +382,15 @@ export function Reminders() {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-700">All reminders</h3>
+            {sortedReminders.length > 0 && (
+              <span className="text-xs text-slate-500">
+                {sortedReminders.length} total
+              </span>
+            )}
+          </div>
           {sortedReminders.length === 0 ? (
             <Alert>
               No reminders found. Add your first reminder using the button above.
