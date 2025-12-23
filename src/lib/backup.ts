@@ -16,6 +16,7 @@ export interface BackupData {
     incomeScenarios?: string;
     theme?: string;
     settings?: string;
+    lodgementHistory?: string;
   };
 }
 

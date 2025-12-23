@@ -9,6 +9,8 @@ import { Alert } from '@/components/ui/alert';
 import { formatCurrency } from '@/lib/utils';
 import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
 import { useAtoStore } from '@/store/ato';
+import { useLodgementHistoryStore } from '@/store/lodgementHistory';
+import { toast } from 'sonner';
 
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const;
 type Quarter = (typeof QUARTERS)[number];
@@ -82,6 +84,7 @@ function normaliseDateOnly(value: string | null): Date | null {
 export function MissedLodgements() {
   const { data: atoData } = useAtoStore();
   const penalties = atoData?.penalties;
+  const { convertFromMissed } = useLodgementHistoryStore();
 
   const [rows, setRows] = useState<MissedPeriod[]>([createEmptyRow(1)]);
 
@@ -180,6 +183,24 @@ export function MissedLodgements() {
     setRows((current) => (current.length <= 1 ? current : current.filter((row) => row.id !== id)));
   };
 
+  const handleConvertToHistory = (row: MissedPeriod) => {
+    try {
+      const newRecord = convertFromMissed(row);
+      toast.success(
+        `Moved to lodgement history: ${newRecord.type} ${newRecord.year}${newRecord.quarter ? ` ${newRecord.quarter}` : ''}`,
+      );
+      // Optionally remove from missed lodgements after conversion
+      handleRemoveRow(row.id);
+    } catch (error) {
+      const errorMessage = (error as Error).message || 'Failed to convert';
+      if (errorMessage.includes('already exists')) {
+        toast.error('This period already exists in lodgement history');
+      } else {
+        toast.error(`Failed to convert: ${errorMessage}`);
+      }
+    }
+  };
+
   const parsed = useMemo(() => {
     const today = normaliseDateOnly(new Date().toISOString().slice(0, 10));
 
@@ -272,16 +293,26 @@ export function MissedLodgements() {
                       </span>
                     )}
                   </div>
-                  {rows.length > 1 && (
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      onClick={() => handleRemoveRow(row.id)}
+                      onClick={() => handleConvertToHistory(row)}
                     >
-                      Remove
+                      Move to History
                     </Button>
-                  )}
+                    {rows.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveRow(row.id)}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-5">

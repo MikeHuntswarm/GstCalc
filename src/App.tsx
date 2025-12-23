@@ -10,6 +10,7 @@ import { GstCalculator } from '@/components/modules/GstCalculator';
 import { IncomeTaxCalculator } from '@/components/modules/IncomeTaxCalculator';
 import { BusinessTools } from '@/components/modules/BusinessTools';
 import { MissedLodgements } from '@/components/modules/MissedLodgements';
+import { LodgementHistory } from '@/components/modules/LodgementHistory';
 import { AnnualBusinessTax } from '@/components/modules/AnnualBusinessTax';
 import { Reminders } from '@/components/modules/Reminders';
 import { Updater } from '@/components/modules/Updater';
@@ -138,6 +139,7 @@ export default function App() {
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="individual">Individual tools</TabsTrigger>
                 <TabsTrigger value="business">Business tools</TabsTrigger>
+                <TabsTrigger value="lodgement-history">Lodgement History</TabsTrigger>
                 <TabsTrigger value="catch-up">Catch-up planner</TabsTrigger>
                 <TabsTrigger value="annual-tax">Annual business tax</TabsTrigger>
                 <TabsTrigger value="reminders">Reminders</TabsTrigger>
@@ -177,6 +179,12 @@ export default function App() {
                     Company tax rates and penalty schedules are unavailable right now.
                   </Alert>
                 )}
+              </ErrorBoundary>
+            </TabsContent>
+
+            <TabsContent value="lodgement-history" className="space-y-6">
+              <ErrorBoundary>
+                <LodgementHistory />
               </ErrorBoundary>
             </TabsContent>
 

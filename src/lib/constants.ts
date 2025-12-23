@@ -21,6 +21,7 @@ export const STORAGE_KEYS = {
   THEME: 'gstcalc-theme',
   SETTINGS: 'gstcalc-settings',
   DEBUG_MODE: 'gstcalc-debug',
+  LODGEMENT_HISTORY: 'gstcalc-lodgement-history',
 } as const;
 
 // Limits
