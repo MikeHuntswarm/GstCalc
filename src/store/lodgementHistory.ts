@@ -156,7 +156,9 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
               ? (missedPeriod.quarter as 'Q1' | 'Q2' | 'Q3' | 'Q4')
               : undefined,
           status: 'not-lodged',
-          dueDate: missedPeriod.dueDate || new Date().toISOString(),
+          dueDate: missedPeriod.dueDate
+            ? new Date(missedPeriod.dueDate).toISOString()
+            : new Date().toISOString(),
           amount,
           notes: missedPeriod.notes || '',
           source: 'converted-from-missed',
