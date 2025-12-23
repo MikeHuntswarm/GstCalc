@@ -57,6 +57,20 @@ function setupAutoUpdates(mainWindow: BrowserWindow) {
     return;
   }
 
+  // Configure autoUpdater for private repository
+  const ghToken = process.env.GH_TOKEN;
+  if (ghToken) {
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'MikeHuntswarm',
+      repo: 'GstCalc',
+      private: true,
+      token: ghToken,
+    });
+  } else {
+    console.warn('GH_TOKEN not found. Auto-updates may not work for private repository.');
+  }
+
   autoUpdater.on('update-available', (info) => {
     mainWindow.webContents.send('updater:update-available', info);
   });
