@@ -81,7 +81,7 @@ export function Updater() {
           <CardTitle>App Updater</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Updates are managed by the packaged desktop application. Run the installer build of
             GSTCalc to receive automatic updates.
           </p>
@@ -105,7 +105,7 @@ export function Updater() {
         </div>
 
         {isChecking && (
-          <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+          <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Checking for updates from GitHub...</span>
           </div>
@@ -113,15 +113,15 @@ export function Updater() {
 
         <Separator />
         {error && (
-          <div className="text-red-500">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100">
             <p>Error: {error.message}</p>
           </div>
         )}
         {updateAvailable && !updateDownloaded && (
-          <div>
+          <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100">
             <p>A new version ({updateAvailable.version}) is available. Downloading...</p>
             {downloadProgress && (
-              <div>
+              <div className="mt-2 space-y-1">
                 <p>Progress: {Math.round(downloadProgress.percent)}%</p>
                 <p>({Math.round(downloadProgress.bytesPerSecond / 1024)} KB/s)</p>
               </div>
@@ -129,20 +129,20 @@ export function Updater() {
           </div>
         )}
         {updateDownloaded && (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100">
             <p>Update downloaded. Version: {updateDownloaded.version}</p>
             <Button onClick={handleRelaunch}>Restart and Install</Button>
           </div>
         )}
         {!updateAvailable && !isChecking && !error && (
-          <div className="space-y-1 text-sm text-slate-700">
+          <div className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
             <p>
               {lastCheckedAt
                 ? 'No newer version was found.'
-                : 'Click “Check for Updates” to see if a newer version is available.'}
+                : 'Click "Check for Updates" to see if a newer version is available.'}
             </p>
             {lastCheckedAt && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Last checked: {lastCheckedAt.toLocaleString('en-AU')}
               </p>
             )}

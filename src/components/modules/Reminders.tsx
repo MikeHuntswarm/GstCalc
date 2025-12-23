@@ -9,29 +9,29 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 
-import { 
-  useRemindersStore, 
-  ReminderCategory, 
+import {
+  useRemindersStore,
+  ReminderCategory,
   Reminder,
-  formatReminderDate
+  formatReminderDate,
 } from '@/store/reminders';
 
 // Component to display and manage reminders
 export function Reminders() {
-  const { 
-    reminders, 
-    addReminder, 
-    updateReminder, 
-    removeReminder, 
-    checkDueReminders, 
-    getUpcomingReminders 
+  const {
+    reminders,
+    addReminder,
+    updateReminder,
+    removeReminder,
+    checkDueReminders,
+    getUpcomingReminders,
   } = useRemindersStore();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<ReminderCategory | 'all'>('all');
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
-  
+
   // Form state
   const [formLabel, setFormLabel] = useState('');
   const [formDueDate, setFormDueDate] = useState('');
@@ -39,15 +39,20 @@ export function Reminders() {
   const [formNotifyDays, setFormNotifyDays] = useState([7, 3, 1]);
   const [formNotes, setFormNotes] = useState('');
 
+  // Auto-populate state
+  const [selectedQuarter, setSelectedQuarter] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+
   // Check for due reminders on mount and when reminders change
   useEffect(() => {
     checkDueReminders();
   }, [reminders, checkDueReminders]);
 
   // Filter reminders by category
-  const filteredReminders = selectedCategory === 'all' 
-    ? reminders 
-    : reminders.filter(r => r.category === selectedCategory);
+  const filteredReminders =
+    selectedCategory === 'all'
+      ? reminders
+      : reminders.filter((r) => r.category === selectedCategory);
 
   // Sort reminders by due date
   const sortedReminders = [...filteredReminders].sort((a, b) => {
@@ -58,12 +63,91 @@ export function Reminders() {
 
   const upcomingReminders = getUpcomingReminders(14);
 
+  // Helper function to calculate due date based on category, quarter, and year
+  const calculateDueDate = (category: ReminderCategory, quarter: string, year: string): string => {
+    const numericYear = parseInt(year, 10);
+    if (!numericYear || isNaN(numericYear)) return '';
+
+    switch (category) {
+      case 'bas':
+        // BAS quarters (Australian financial year: July 1 - June 30)
+        switch (quarter) {
+          case 'Q1': // July-September → Due 28 October
+            return `${numericYear}-10-28`;
+          case 'Q2': // October-December → Due 28 February (next calendar year)
+            return `${numericYear + 1}-02-28`;
+          case 'Q3': // January-March → Due 28 April (next calendar year)
+            return `${numericYear + 1}-04-28`;
+          case 'Q4': // April-June → Due 28 July (next calendar year)
+            return `${numericYear + 1}-07-28`;
+          default:
+            return '';
+        }
+
+      case 'tax_return':
+        // Individual tax return due October 31 (for previous financial year)
+        return `${numericYear + 1}-10-31`;
+
+      case 'superannuation':
+        // Superannuation Guarantee due 28th of month after quarter end
+        switch (quarter) {
+          case 'Q1': // July-September → Due 28 October
+            return `${numericYear}-10-28`;
+          case 'Q2': // October-December → Due 28 January (next calendar year)
+            return `${numericYear + 1}-01-28`;
+          case 'Q3': // January-March → Due 28 April (next calendar year)
+            return `${numericYear + 1}-04-28`;
+          case 'Q4': // April-June → Due 28 July (next calendar year)
+            return `${numericYear + 1}-07-28`;
+          default:
+            return '';
+        }
+
+      default:
+        return '';
+    }
+  };
+
+  // Auto-populate due date when category, quarter, or year changes
+  useEffect(() => {
+    if (formCategory !== 'custom' && selectedQuarter && selectedYear) {
+      const dueDate = calculateDueDate(formCategory, selectedQuarter, selectedYear);
+      if (dueDate) {
+        setFormDueDate(dueDate);
+
+        // Auto-populate label if it's empty
+        if (!formLabel) {
+          let autoLabel = '';
+          if (formCategory === 'bas') {
+            autoLabel = `BAS ${selectedQuarter} FY${selectedYear}`;
+          } else if (formCategory === 'tax_return') {
+            autoLabel = `Tax Return FY${selectedYear}`;
+          } else if (formCategory === 'superannuation') {
+            autoLabel = `Super ${selectedQuarter} FY${selectedYear}`;
+          }
+          setFormLabel(autoLabel);
+        }
+      }
+    } else if (formCategory === 'tax_return' && selectedYear) {
+      // Tax return only needs year
+      const dueDate = calculateDueDate(formCategory, '', selectedYear);
+      if (dueDate) {
+        setFormDueDate(dueDate);
+        if (!formLabel) {
+          setFormLabel(`Tax Return FY${selectedYear}`);
+        }
+      }
+    }
+  }, [formCategory, selectedQuarter, selectedYear]);
+
   const resetForm = () => {
     setFormLabel('');
     setFormDueDate('');
     setFormCategory('bas');
     setFormNotifyDays([7, 3, 1]);
     setFormNotes('');
+    setSelectedQuarter('');
+    setSelectedYear(new Date().getFullYear().toString());
     setEditingReminderId(null);
   };
 
@@ -94,7 +178,7 @@ export function Reminders() {
         dueDate: formattedDueDate,
         category: formCategory,
         notifyDaysBefore: formNotifyDays,
-        notes: formNotes || undefined
+        notes: formNotes || undefined,
       });
     } else {
       addReminder({
@@ -102,7 +186,7 @@ export function Reminders() {
         dueDate: formattedDueDate,
         category: formCategory,
         notifyDaysBefore: formNotifyDays,
-        notes: formNotes || undefined
+        notes: formNotes || undefined,
       });
     }
 
@@ -121,30 +205,40 @@ export function Reminders() {
   };
 
   const handleNotifyDayToggle = (days: number) => {
-    setFormNotifyDays(current => 
+    setFormNotifyDays((current) =>
       current.includes(days)
-        ? current.filter(d => d !== days)
-        : [...current, days].sort((a, b) => b - a)
+        ? current.filter((d) => d !== days)
+        : [...current, days].sort((a, b) => b - a),
     );
   };
 
   const getCategoryLabel = (category: ReminderCategory): string => {
-    switch(category) {
-      case 'bas': return 'BAS Lodgement';
-      case 'tax_return': return 'Tax Return';
-      case 'superannuation': return 'Superannuation';
-      case 'custom': return 'Custom';
-      default: return 'Unknown';
+    switch (category) {
+      case 'bas':
+        return 'BAS Lodgement';
+      case 'tax_return':
+        return 'Tax Return';
+      case 'superannuation':
+        return 'Superannuation';
+      case 'custom':
+        return 'Custom';
+      default:
+        return 'Unknown';
     }
   };
 
   const getCategoryStyle = (category: ReminderCategory): string => {
-    switch(category) {
-      case 'bas': return 'bg-blue-100 text-blue-800';
-      case 'tax_return': return 'bg-emerald-100 text-emerald-800';
-      case 'superannuation': return 'bg-purple-100 text-purple-800';
-      case 'custom': return 'bg-amber-100 text-amber-800';
-      default: return 'bg-slate-100 text-slate-800';
+    switch (category) {
+      case 'bas':
+        return 'bg-blue-100 text-blue-800';
+      case 'tax_return':
+        return 'bg-emerald-100 text-emerald-800';
+      case 'superannuation':
+        return 'bg-purple-100 text-purple-800';
+      case 'custom':
+        return 'bg-amber-100 text-amber-800';
+      default:
+        return 'bg-slate-100 text-slate-800';
     }
   };
 
@@ -178,7 +272,8 @@ export function Reminders() {
           <div>
             <CardTitle className="text-2xl">Lodgement Reminders</CardTitle>
             <CardDescription>
-              Keep track of upcoming tax and business lodgement deadlines with customizable notifications
+              Keep track of upcoming tax and business lodgement deadlines with customizable
+              notifications
             </CardDescription>
           </div>
         </div>
@@ -189,7 +284,7 @@ export function Reminders() {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-slate-700">Upcoming deadlines</h3>
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-3">
-              {upcomingReminders.slice(0, 3).map(reminder => {
+              {upcomingReminders.slice(0, 3).map((reminder) => {
                 const dueInfo = getDaysUntilLabel(reminder.dueDate);
                 return (
                   <div key={reminder.id} className="flex items-center justify-between">
@@ -217,36 +312,36 @@ export function Reminders() {
 
         <div className="flex items-center justify-between">
           <div className="space-x-2">
-            <Button 
-              variant={selectedCategory === 'all' ? 'default' : 'outline'} 
+            <Button
+              variant={selectedCategory === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory('all')}
             >
               All
             </Button>
-            <Button 
-              variant={selectedCategory === 'bas' ? 'default' : 'outline'} 
+            <Button
+              variant={selectedCategory === 'bas' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory('bas')}
             >
               BAS
             </Button>
-            <Button 
-              variant={selectedCategory === 'tax_return' ? 'default' : 'outline'} 
+            <Button
+              variant={selectedCategory === 'tax_return' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory('tax_return')}
             >
               Tax Returns
             </Button>
-            <Button 
-              variant={selectedCategory === 'superannuation' ? 'default' : 'outline'} 
+            <Button
+              variant={selectedCategory === 'superannuation' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory('superannuation')}
             >
               Super
             </Button>
-            <Button 
-              variant={selectedCategory === 'custom' ? 'default' : 'outline'} 
+            <Button
+              variant={selectedCategory === 'custom' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory('custom')}
             >
@@ -264,21 +359,21 @@ export function Reminders() {
             <h3 className="text-lg font-semibold text-slate-900">
               {editingReminderId ? 'Edit Reminder' : 'Add New Reminder'}
             </h3>
-            
+
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="label">Reminder Label</Label>
-                <Input 
+                <Input
                   id="label"
                   value={formLabel}
                   onChange={(e) => setFormLabel(e.target.value)}
                   placeholder="e.g. March Quarter BAS"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="dueDate">Due Date</Label>
-                <Input 
+                <Input
                   id="dueDate"
                   type="date"
                   value={formDueDate}
@@ -290,7 +385,7 @@ export function Reminders() {
             <div className="space-y-2">
               <Label>Category</Label>
               <div className="flex flex-wrap gap-2">
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formCategory === 'bas' ? 'default' : 'outline'}
@@ -298,7 +393,7 @@ export function Reminders() {
                 >
                   BAS Lodgement
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formCategory === 'tax_return' ? 'default' : 'outline'}
@@ -306,7 +401,7 @@ export function Reminders() {
                 >
                   Tax Return
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formCategory === 'superannuation' ? 'default' : 'outline'}
@@ -314,7 +409,7 @@ export function Reminders() {
                 >
                   Superannuation
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formCategory === 'custom' ? 'default' : 'outline'}
@@ -325,10 +420,72 @@ export function Reminders() {
               </div>
             </div>
 
+            {/* Auto-populate dropdowns based on category */}
+            {(formCategory === 'bas' || formCategory === 'superannuation') && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="quarter">Quarter</Label>
+                  <select
+                    id="quarter"
+                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                    value={selectedQuarter}
+                    onChange={(e) => setSelectedQuarter(e.target.value)}
+                  >
+                    <option value="">Select quarter...</option>
+                    <option value="Q1">Q1 (July - September)</option>
+                    <option value="Q2">Q2 (October - December)</option>
+                    <option value="Q3">Q3 (January - March)</option>
+                    <option value="Q4">Q4 (April - June)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="financialYear">Financial Year</Label>
+                  <select
+                    id="financialYear"
+                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                  >
+                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map(
+                      (year) => (
+                        <option key={year} value={year}>
+                          {year}-{(year + 1).toString().slice(-2)}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {formCategory === 'tax_return' && (
+              <div className="space-y-2">
+                <Label htmlFor="taxYear">Financial Year</Label>
+                <select
+                  id="taxYear"
+                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                >
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map(
+                    (year) => (
+                      <option key={year} value={year}>
+                        {year}-{(year + 1).toString().slice(-2)}
+                      </option>
+                    ),
+                  )}
+                </select>
+                <p className="text-xs text-slate-500">
+                  Due date will be October 31 {parseInt(selectedYear) + 1}
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Notification Preferences</Label>
               <div className="flex flex-wrap gap-2">
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formNotifyDays.includes(7) ? 'default' : 'outline'}
@@ -336,7 +493,7 @@ export function Reminders() {
                 >
                   7 days before
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formNotifyDays.includes(3) ? 'default' : 'outline'}
@@ -344,7 +501,7 @@ export function Reminders() {
                 >
                   3 days before
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formNotifyDays.includes(1) ? 'default' : 'outline'}
@@ -352,7 +509,7 @@ export function Reminders() {
                 >
                   1 day before
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   size="sm"
                   variant={formNotifyDays.includes(0) ? 'default' : 'outline'}
@@ -365,7 +522,7 @@ export function Reminders() {
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (optional)</Label>
-              <Input 
+              <Input
                 id="notes"
                 value={formNotes}
                 onChange={(e) => setFormNotes(e.target.value)}
@@ -374,7 +531,9 @@ export function Reminders() {
             </div>
 
             <div className="flex items-center justify-end gap-3">
-              <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+              <Button variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
               <Button onClick={handleSave}>
                 {editingReminderId ? 'Update Reminder' : 'Add Reminder'}
               </Button>
@@ -386,18 +545,14 @@ export function Reminders() {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-slate-700">All reminders</h3>
             {sortedReminders.length > 0 && (
-              <span className="text-xs text-slate-500">
-                {sortedReminders.length} total
-              </span>
+              <span className="text-xs text-slate-500">{sortedReminders.length} total</span>
             )}
           </div>
           {sortedReminders.length === 0 ? (
-            <Alert>
-              No reminders found. Add your first reminder using the button above.
-            </Alert>
+            <Alert>No reminders found. Add your first reminder using the button above.</Alert>
           ) : (
             <div className="space-y-4">
-              {sortedReminders.map(reminder => {
+              {sortedReminders.map((reminder) => {
                 const dueInfo = getDaysUntilLabel(reminder.dueDate);
                 return (
                   <div key={reminder.id} className="rounded-lg border border-slate-200 p-4">
@@ -414,7 +569,7 @@ export function Reminders() {
                           <p className="mt-2 text-sm text-slate-600">{reminder.notes}</p>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Badge className={dueInfo.style}>{dueInfo.label}</Badge>
                         <Button
@@ -445,7 +600,9 @@ export function Reminders() {
                         Will notify:{' '}
                         {reminder.notifyDaysBefore.length
                           ? reminder.notifyDaysBefore
-                              .map((d) => (d === 0 ? 'on due date' : `${d} day${d !== 1 ? 's' : ''} before`))
+                              .map((d) =>
+                                d === 0 ? 'on due date' : `${d} day${d !== 1 ? 's' : ''} before`,
+                              )
                               .join(', ')
                           : 'No notifications set'}
                       </p>
