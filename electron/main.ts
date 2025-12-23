@@ -92,7 +92,18 @@ app.whenReady().then(async () => {
   const mainWindow = await createMainWindow();
   setupAutoUpdates(mainWindow);
 
+  // Rate limiting for notifications
+  let lastNotificationTime = 0;
+  const NOTIFICATION_COOLDOWN = 1000; // 1 second
+
   ipcMain.on('show-notification', (event, title, body) => {
+    const now = Date.now();
+    if (now - lastNotificationTime < NOTIFICATION_COOLDOWN) {
+      console.log('Notification rate limited');
+      return;
+    }
+    lastNotificationTime = now;
+
     console.log(`Showing notification: ${title} - ${body}`);
     if (Notification.isSupported()) {
       new Notification({ title, body }).show();
@@ -113,6 +124,14 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('get-ato-rates', async (event, url) => {
     try {
+      // Security: Whitelist allowed domains
+      const ALLOWED_DOMAINS = ['raw.githubusercontent.com', 'github.com', 'api.github.com'];
+
+      const parsedUrl = new URL(url);
+      if (!ALLOWED_DOMAINS.includes(parsedUrl.hostname)) {
+        throw new Error(`Unauthorized domain: ${parsedUrl.hostname}`);
+      }
+
       const response = await net.fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`);

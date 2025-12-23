@@ -13,19 +13,30 @@ contextBridge.exposeInMainWorld('gstcalc', {
   getAtoRates: (url: string) => ipcRenderer.invoke('get-ato-rates', url),
   updater: {
     onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
-      ipcRenderer.on('updater:update-available', (event, info) => callback(info));
+      const handler = (event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info);
+      ipcRenderer.on('updater:update-available', handler);
+      return () => ipcRenderer.removeListener('updater:update-available', handler);
     },
     onUpdateNotAvailable: (callback: (info: UpdateInfo) => void) => {
-      ipcRenderer.on('updater:update-not-available', (event, info) => callback(info));
+      const handler = (event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info);
+      ipcRenderer.on('updater:update-not-available', handler);
+      return () => ipcRenderer.removeListener('updater:update-not-available', handler);
     },
     onDownloadProgress: (callback: (progress: ProgressInfo) => void) => {
-      ipcRenderer.on('updater:download-progress', (event, progress) => callback(progress));
+      const handler = (event: Electron.IpcRendererEvent, progress: ProgressInfo) =>
+        callback(progress);
+      ipcRenderer.on('updater:download-progress', handler);
+      return () => ipcRenderer.removeListener('updater:download-progress', handler);
     },
     onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => {
-      ipcRenderer.on('updater:update-downloaded', (event, info) => callback(info));
+      const handler = (event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info);
+      ipcRenderer.on('updater:update-downloaded', handler);
+      return () => ipcRenderer.removeListener('updater:update-downloaded', handler);
     },
     onError: (callback: (error: Error) => void) => {
-      ipcRenderer.on('updater:error', (event, error) => callback(error));
+      const handler = (event: Electron.IpcRendererEvent, error: Error) => callback(error);
+      ipcRenderer.on('updater:error', handler);
+      return () => ipcRenderer.removeListener('updater:error', handler);
     },
   },
   app: {

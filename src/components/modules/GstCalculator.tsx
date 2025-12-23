@@ -24,9 +24,7 @@ type SavedScenario = {
 };
 
 export function GstCalculator() {
-  const {
-    data: atoData,
-  } = useAtoStore();
+  const { data: atoData } = useAtoStore();
   const defaultRate = atoData?.gst.standardRate ?? 0.1;
   const notes = atoData?.gst.notes;
 
@@ -37,7 +35,7 @@ export function GstCalculator() {
   const [copyTarget, setCopyTarget] = useState<CopyTarget>(null);
 
   const [scenarios, setScenarios] = useState<SavedScenario[]>([]);
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+  const [, setSelectedScenarioId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
