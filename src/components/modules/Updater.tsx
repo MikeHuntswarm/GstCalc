@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Loader2 } from 'lucide-react';
 
 export function Updater() {
   const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null);
@@ -13,8 +14,7 @@ export function Updater() {
   const [isChecking, setIsChecking] = useState(false);
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
 
-  const hasElectronApi =
-    typeof window !== 'undefined' && typeof window.gstcalc !== 'undefined';
+  const hasElectronApi = typeof window !== 'undefined' && typeof window.gstcalc !== 'undefined';
 
   useEffect(() => {
     const api = window.gstcalc;
@@ -99,9 +99,18 @@ export function Updater() {
         <div className="flex items-center justify-between">
           <Label htmlFor="check-for-updates">Check for new updates</Label>
           <Button id="check-for-updates" onClick={handleCheckForUpdates} disabled={isChecking}>
+            {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isChecking ? 'Checking...' : 'Check for Updates'}
           </Button>
         </div>
+
+        {isChecking && (
+          <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Checking for updates from GitHub...</span>
+          </div>
+        )}
+
         <Separator />
         {error && (
           <div className="text-red-500">
@@ -110,15 +119,11 @@ export function Updater() {
         )}
         {updateAvailable && !updateDownloaded && (
           <div>
-            <p>
-              A new version ({updateAvailable.version}) is available. Downloading...
-            </p>
+            <p>A new version ({updateAvailable.version}) is available. Downloading...</p>
             {downloadProgress && (
               <div>
                 <p>Progress: {Math.round(downloadProgress.percent)}%</p>
-                <p>
-                  ({Math.round(downloadProgress.bytesPerSecond / 1024)} KB/s)
-                </p>
+                <p>({Math.round(downloadProgress.bytesPerSecond / 1024)} KB/s)</p>
               </div>
             )}
           </div>
