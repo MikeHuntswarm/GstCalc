@@ -28,7 +28,11 @@ type MissedPeriod = {
 
 const STORAGE_KEY = 'gstcalc_missed_lodgements_v2';
 
-function computeDefaultDueDate(type: MissedType, quarter: Quarter | '', year: string): string | null {
+function computeDefaultDueDate(
+  type: MissedType,
+  quarter: Quarter | '',
+  year: string,
+): string | null {
   const numericYear = Number.parseInt(year, 10);
   if (!numericYear || Number.isNaN(numericYear)) {
     return null;
@@ -76,9 +80,7 @@ function normaliseDateOnly(value: string | null): Date | null {
 }
 
 export function MissedLodgements() {
-  const {
-    data: atoData,
-  } = useAtoStore();
+  const { data: atoData } = useAtoStore();
   const penalties = atoData?.penalties;
 
   const [rows, setRows] = useState<MissedPeriod[]>([createEmptyRow(1)]);
@@ -222,7 +224,7 @@ export function MissedLodgements() {
     );
   }, [parsed]);
 
-  const grandTotal = totals.gst + totals.company;
+  const grandTotal = totals.gst + totals.company + totals.penalties;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -362,7 +364,8 @@ export function MissedLodgements() {
                         {row.penaltyEstimate.periodsLate}
                       </span>
                       <span className="font-semibold">
-                        Estimated Failure to Lodge penalty: {formatCurrency(row.penaltyEstimate.amount)} (
+                        Estimated Failure to Lodge penalty:{' '}
+                        {formatCurrency(row.penaltyEstimate.amount)} (
                         {row.penaltyEstimate.penaltyUnits} units)
                       </span>
                     </div>
@@ -388,7 +391,9 @@ export function MissedLodgements() {
             </span>
             <div>
               <CardTitle className="text-2xl">Outstanding summary</CardTitle>
-              <CardDescription>Totals based on the amounts and due dates you’ve entered.</CardDescription>
+              <CardDescription>
+                Totals based on the amounts and due dates you’ve entered.
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -407,7 +412,7 @@ export function MissedLodgements() {
               <span className="font-semibold">{formatCurrency(totals.penalties)}</span>
             </div>
             <div className="mt-2 flex items-center justify-between border-t border-slate-200 pt-2 text-base font-semibold">
-              <span>Total outstanding (all periods, before GIC)</span>
+              <span>Total outstanding (including penalties, before GIC)</span>
               <span>{formatCurrency(grandTotal)}</span>
             </div>
           </div>
@@ -422,8 +427,8 @@ export function MissedLodgements() {
                   arrangements.
                 </p>
                 <p>
-                  Use this as a planning tool, then confirm actual amounts with your tax agent or the
-                  ATO before paying.
+                  Use this as a planning tool, then confirm actual amounts with your tax agent or
+                  the ATO before paying.
                 </p>
               </div>
             </div>
