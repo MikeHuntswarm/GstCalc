@@ -198,6 +198,37 @@ const BAS_HISTORY_IMPORT = [
   },
 ];
 
+// Income Tax history import data
+const INCOME_TAX_IMPORT = [
+  {
+    type: 'income-tax' as const,
+    year: 2020,
+    status: 'lodged' as const,
+    dueDate: '2021-10-31',
+    lodgementDate: '2021-10-19',
+    amount: -45870.0,
+    notes: 'Trust tax loss: Income $60,764 - Expenses $106,947 = -$45,870. Losses c/f: $45,870',
+  },
+  {
+    type: 'income-tax' as const,
+    year: 2021,
+    status: 'lodged' as const,
+    dueDate: '2022-10-31',
+    lodgementDate: '2023-05-15',
+    amount: 0,
+    notes: 'Net income $10,502 offset by losses. Losses c/f: $35,368',
+  },
+  {
+    type: 'income-tax' as const,
+    year: 2022,
+    status: 'lodged' as const,
+    dueDate: '2023-10-31',
+    lodgementDate: '2024-05-02',
+    amount: 0,
+    notes: 'Net income $27,211 offset by losses. Losses c/f: $8,157',
+  },
+];
+
 export function LodgementHistory() {
   const { records, addLodgement, updateLodgement, removeLodgement, getSummary } =
     useLodgementHistoryStore();
@@ -450,6 +481,53 @@ export function LodgementHistory() {
     }
   };
 
+  const handleIncomeTaxImport = () => {
+    if (
+      !confirm(
+        `This will import ${INCOME_TAX_IMPORT.length} Income Tax returns from 2020-2022. Continue?`,
+      )
+    ) {
+      return;
+    }
+
+    let successCount = 0;
+    let skipCount = 0;
+    let errorCount = 0;
+
+    INCOME_TAX_IMPORT.forEach((record) => {
+      try {
+        // Convert date strings to ISO format
+        const recordWithIso = {
+          ...record,
+          dueDate: new Date(record.dueDate + 'T00:00:00').toISOString(),
+          lodgementDate: new Date(record.lodgementDate + 'T00:00:00').toISOString(),
+          source: 'manual' as const,
+        };
+
+        addLodgement(recordWithIso);
+        successCount++;
+      } catch (error) {
+        const errorMessage = (error as Error).message || '';
+        if (errorMessage.includes('already exists')) {
+          skipCount++;
+        } else {
+          errorCount++;
+          console.error('Import error:', error);
+        }
+      }
+    });
+
+    if (successCount > 0) {
+      toast.success(`Imported ${successCount} income tax records successfully`);
+    }
+    if (skipCount > 0) {
+      toast.info(`Skipped ${skipCount} duplicate records`);
+    }
+    if (errorCount > 0) {
+      toast.error(`Failed to import ${errorCount} records`);
+    }
+  };
+
   const getYearRange = () => {
     const currentYear = new Date().getFullYear();
     // 10 years back + current year + 2 years forward = 13 total years
@@ -480,10 +558,16 @@ export function LodgementHistory() {
                 Filters
               </Button>
               {records.length === 0 && (
-                <Button variant="outline" size="sm" onClick={handleBulkImport}>
-                  <FileTextIcon className="mr-2 h-4 w-4" />
-                  Import BAS History
-                </Button>
+                <>
+                  <Button variant="outline" size="sm" onClick={handleBulkImport}>
+                    <FileTextIcon className="mr-2 h-4 w-4" />
+                    Import BAS History
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleIncomeTaxImport}>
+                    <FileTextIcon className="mr-2 h-4 w-4" />
+                    Import Income Tax
+                  </Button>
+                </>
               )}
               <Button size="sm" onClick={() => setShowForm(!showForm)}>
                 <PlusIcon className="mr-2 h-4 w-4" />
