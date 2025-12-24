@@ -7,6 +7,8 @@ export interface LodgementRecord {
   dueDate: string; // ISO 8601
   lodgementDate?: string; // ISO 8601, required if lodged
   amount: number;
+  isLate?: boolean; // Whether lodgement was submitted late
+  daysLate?: number; // Number of days late (if applicable)
   hasPenalty?: boolean; // Whether ATO penalty/fine was applied
   penaltyAmount?: number; // Amount of penalty/fine if applicable
   notes?: string;
@@ -22,6 +24,8 @@ export interface LodgementSummary {
   totalAmount: number;
   totalLodgedAmount: number;
   totalOutstandingAmount: number;
+  lateCount: number;
+  totalDaysLate: number;
   totalPenalties: number;
   penaltyCount: number;
   oldestOutstanding?: LodgementRecord;

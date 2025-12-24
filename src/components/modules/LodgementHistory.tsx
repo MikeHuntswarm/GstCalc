@@ -238,6 +238,26 @@ export function LodgementHistory() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
+  // Auto-import income tax records on mount if they don't exist
+  useEffect(() => {
+    const hasIncomeTax = records.some((r) => r.type === 'income-tax');
+    if (!hasIncomeTax && INCOME_TAX_IMPORT.length > 0) {
+      INCOME_TAX_IMPORT.forEach((record) => {
+        try {
+          const recordWithIso = {
+            ...record,
+            dueDate: new Date(record.dueDate + 'T00:00:00').toISOString(),
+            lodgementDate: new Date(record.lodgementDate + 'T00:00:00').toISOString(),
+            source: 'manual' as const,
+          };
+          addLodgement(recordWithIso);
+        } catch (error) {
+          console.error('Failed to auto-import income tax record:', error);
+        }
+      });
+    }
+  }, []); // Empty deps array = run once on mount
+
   // Form state
   const [formType, setFormType] = useState<'gst-bas' | 'company-tax' | 'income-tax'>('gst-bas');
   const [formQuarter, setFormQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>('Q1');
@@ -992,6 +1012,14 @@ export function LodgementHistory() {
                         <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                       ) : (
                         <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      )}
+                      {record.isLate && record.daysLate && (
+                        <div className="flex items-center gap-1">
+                          <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                            Late ({record.daysLate} days)
+                          </span>
+                        </div>
                       )}
                       {record.hasPenalty && (
                         <div className="flex items-center gap-1">

@@ -61,6 +61,25 @@ const validateRecord = (record: LodgementRecord): LodgementRecord => {
   return validated as LodgementRecord;
 };
 
+const calculateLateDays = (
+  dueDate: string,
+  lodgementDate?: string,
+): { isLate: boolean; daysLate: number } => {
+  if (!lodgementDate) {
+    return { isLate: false, daysLate: 0 };
+  }
+
+  const due = new Date(dueDate);
+  const lodged = new Date(lodgementDate);
+  const diffMs = lodged.getTime() - due.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  return {
+    isLate: diffDays > 0,
+    daysLate: diffDays > 0 ? diffDays : 0,
+  };
+};
+
 export const useLodgementHistoryStore = create<LodgementHistoryState>()(
   persist(
     (set, get) => ({
@@ -68,9 +87,15 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
 
       addLodgement: (record) => {
         const now = new Date().toISOString();
+
+        // Calculate late days automatically
+        const lateInfo = calculateLateDays(record.dueDate, record.lodgementDate);
+
         const newRecord: LodgementRecord = {
           ...record,
           id: generateId(),
+          isLate: lateInfo.isLate || undefined,
+          daysLate: lateInfo.daysLate > 0 ? lateInfo.daysLate : undefined,
           createdAt: now,
           updatedAt: now,
         };
@@ -104,10 +129,19 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
             throw new Error(`Lodgement with ID ${id} not found`);
           }
 
-          const updated: LodgementRecord = {
+          const merged = {
             ...state.records[index],
             ...updates,
             updatedAt: new Date().toISOString(),
+          };
+
+          // Recalculate late days if due date or lodgement date changed
+          const lateInfo = calculateLateDays(merged.dueDate, merged.lodgementDate);
+
+          const updated: LodgementRecord = {
+            ...merged,
+            isLate: lateInfo.isLate || undefined,
+            daysLate: lateInfo.daysLate > 0 ? lateInfo.daysLate : undefined,
           };
 
           // Validate updated record
@@ -234,6 +268,11 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
         const totalLodgedAmount = lodgedRecords.reduce((sum, r) => sum + r.amount, 0);
         const totalOutstandingAmount = notLodgedRecords.reduce((sum, r) => sum + r.amount, 0);
 
+        // Calculate late lodgement statistics
+        const lateRecords = records.filter((r) => r.isLate);
+        const lateCount = lateRecords.length;
+        const totalDaysLate = lateRecords.reduce((sum, r) => sum + (r.daysLate || 0), 0);
+
         // Calculate penalty totals
         const penaltiedRecords = records.filter((r) => r.hasPenalty);
         const totalPenalties = penaltiedRecords.reduce((sum, r) => sum + (r.penaltyAmount || 0), 0);
@@ -258,6 +297,8 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
           totalAmount,
           totalLodgedAmount,
           totalOutstandingAmount,
+          lateCount,
+          totalDaysLate,
           totalPenalties,
           penaltyCount,
           oldestOutstanding,

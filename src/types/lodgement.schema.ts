@@ -18,6 +18,12 @@ export const LodgementRecordSchema = z
     dueDate: z.string().datetime('Due date must be a valid ISO 8601 date'),
     lodgementDate: z.string().datetime('Lodgement date must be a valid ISO 8601 date').optional(),
     amount: z.number().finite('Amount must be a finite number'),
+    isLate: z.boolean().optional(),
+    daysLate: z
+      .number()
+      .int('Days late must be an integer')
+      .nonnegative('Days late cannot be negative')
+      .optional(),
     hasPenalty: z.boolean().optional(),
     penaltyAmount: z
       .number()
