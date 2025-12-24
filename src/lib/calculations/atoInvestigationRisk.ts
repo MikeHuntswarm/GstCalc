@@ -427,6 +427,67 @@ function detectChronicNonCompliance(records: LodgementRecord[]): RiskFlag | null
   return null;
 }
 
+// Detector 10: Actual ATO Penalties (based on hasPenalty field)
+function detectActualPenalties(records: LodgementRecord[]): RiskFlag | null {
+  const penalizedRecords = records.filter((r) => r.hasPenalty);
+
+  if (penalizedRecords.length === 0) {
+    return null;
+  }
+
+  const totalPenalties = penalizedRecords.reduce((sum, r) => sum + (r.penaltyAmount || 0), 0);
+  const affectedPeriods = penalizedRecords.map(formatPeriodKey);
+
+  // 3+ penalties = critical risk
+  if (penalizedRecords.length >= 3) {
+    return {
+      type: 'high-penalty-exposure',
+      severity: 'critical',
+      message: `${penalizedRecords.length} ATO penalties applied (total: $${totalPenalties.toFixed(2)})`,
+      affectedPeriods,
+      recommendation:
+        'Multiple actual ATO penalties indicate severe compliance failures. This significantly increases investigation risk. Seek professional tax advice immediately.',
+      details: {
+        count: penalizedRecords.length,
+        metric: totalPenalties,
+        threshold: 3,
+      },
+    };
+  }
+
+  // 2 penalties = high risk
+  if (penalizedRecords.length === 2) {
+    return {
+      type: 'high-penalty-exposure',
+      severity: 'high',
+      message: `${penalizedRecords.length} ATO penalties applied (total: $${totalPenalties.toFixed(2)})`,
+      affectedPeriods,
+      recommendation:
+        'Two ATO penalties is a serious red flag. Review your lodgement processes immediately to avoid further penalties and potential investigation.',
+      details: {
+        count: penalizedRecords.length,
+        metric: totalPenalties,
+        threshold: 2,
+      },
+    };
+  }
+
+  // 1 penalty = low risk (everyone makes mistakes)
+  return {
+    type: 'high-penalty-exposure',
+    severity: 'low',
+    message: `1 ATO penalty applied ($${totalPenalties.toFixed(2)})`,
+    affectedPeriods,
+    recommendation:
+      'Single penalty noted. Learn from this and ensure future compliance to avoid repeat penalties.',
+    details: {
+      count: 1,
+      metric: totalPenalties,
+      threshold: 1,
+    },
+  };
+}
+
 function calculateRiskScore(flags: RiskFlag[]): number {
   if (flags.length === 0) return 0;
 
@@ -509,6 +570,7 @@ export function assessInvestigationRisk(
     () => detectDecreasingCompliance(lodgementHistory),
     () => detectHighPenaltyExposure(lodgementHistory, penalties),
     () => detectChronicNonCompliance(lodgementHistory),
+    () => detectActualPenalties(lodgementHistory), // NEW: Check actual ATO penalties
   ];
 
   for (const detector of detectors) {

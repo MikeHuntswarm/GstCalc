@@ -31,13 +31,13 @@ interface LodgementHistoryState {
   // Querying
   getLodgementById: (id: string) => LodgementRecord | undefined;
   getLodgementsByYear: (year: number) => LodgementRecord[];
-  getLodgementsByType: (type: 'gst-bas' | 'company-tax') => LodgementRecord[];
+  getLodgementsByType: (type: 'gst-bas' | 'company-tax' | 'income-tax') => LodgementRecord[];
   getLodgementsByStatus: (status: 'lodged' | 'not-lodged') => LodgementRecord[];
   getFilteredLodgements: (filters: LodgementFilters) => LodgementRecord[];
 
   // Duplicate prevention
   checkDuplicatePeriod: (
-    type: 'gst-bas' | 'company-tax',
+    type: 'gst-bas' | 'company-tax' | 'income-tax',
     year: number,
     quarter?: 'Q1' | 'Q2' | 'Q3' | 'Q4',
   ) => LodgementRecord | undefined;
@@ -202,6 +202,10 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
           filtered = filtered.filter((r) => r.quarter === filters.quarter);
         }
 
+        if (filters.hasPenalty !== undefined) {
+          filtered = filtered.filter((r) => r.hasPenalty === filters.hasPenalty);
+        }
+
         return filtered;
       },
 
@@ -230,6 +234,11 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
         const totalLodgedAmount = lodgedRecords.reduce((sum, r) => sum + r.amount, 0);
         const totalOutstandingAmount = notLodgedRecords.reduce((sum, r) => sum + r.amount, 0);
 
+        // Calculate penalty totals
+        const penaltiedRecords = records.filter((r) => r.hasPenalty);
+        const totalPenalties = penaltiedRecords.reduce((sum, r) => sum + (r.penaltyAmount || 0), 0);
+        const penaltyCount = penaltiedRecords.length;
+
         // Find oldest outstanding
         const oldestOutstanding = notLodgedRecords.sort(
           (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
@@ -249,6 +258,8 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
           totalAmount,
           totalLodgedAmount,
           totalOutstandingAmount,
+          totalPenalties,
+          penaltyCount,
           oldestOutstanding,
           newestLodgement,
         };
@@ -278,16 +289,30 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
             const parsed = JSON.parse(str);
             // Validate each record on rehydration
             if (parsed.state?.records && Array.isArray(parsed.state.records)) {
+              const originalCount = parsed.state.records.length;
               parsed.state.records = parsed.state.records
                 .map((record: LodgementRecord) => {
                   try {
                     return validateRecord(record);
-                  } catch {
-                    // Skip invalid records
+                  } catch (error) {
+                    // Log validation errors for debugging
+                    console.warn('Invalid lodgement record skipped during rehydration:', {
+                      id: record.id,
+                      type: record.type,
+                      year: record.year,
+                      error: error instanceof Error ? error.message : 'Unknown error',
+                    });
                     return null;
                   }
                 })
                 .filter(Boolean);
+
+              const skippedCount = originalCount - parsed.state.records.length;
+              if (skippedCount > 0) {
+                console.warn(
+                  `Skipped ${skippedCount} invalid lodgement record(s) during rehydration`,
+                );
+              }
             }
             return parsed;
           } catch {

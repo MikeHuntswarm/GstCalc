@@ -6,7 +6,24 @@
       "Bash(npm run typecheck:*)",
       "Bash(npm run build:*)",
       "Bash(npm run lint)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Comprehensive security, UX, and feature enhancements\n\nThis major update implements extensive improvements across security, code quality,\nUI/UX, and feature completeness based on detailed code review feedback.\n\n## Security Enhancements\n\n- Add Content Security Policy headers to index.html\n- Implement URL whitelisting for IPC handlers with domain validation\n- Add rate limiting for notification IPC to prevent spam\n- Integrate Zod schema validation for all external JSON data\n- Add localStorage validation with corrupt data handling\n- Fix IPC listener cleanup to prevent memory leaks\n- Improve error handling with custom error classes\n\n## Code Quality Improvements\n\n- Create centralized constants file for magic numbers\n- Add comprehensive error handling utilities\n- Implement logger with debug mode toggle\n- Enhance TypeScript type definitions with global.d.ts\n- Add ErrorBoundary components for graceful error handling\n- Configure pre-commit hooks with husky and lint-staged\n- Update stores to use centralized constants\n\n## UI/UX Enhancements\n\n- Implement full dark mode support with theme store\n- Add toast notifications using Sonner library\n- Create theme toggle button in header \\(light/dark/system\\)\n- Apply dark mode classes across all components\n- Enhance visual feedback with loading states\n\n## New Feature Modules\n\n- Add Franking Credits Calculator with tax refund estimation\n- Add Superannuation Calculator with SG and salary sacrifice\n- Create comprehensive Settings panel with:\n  - Theme selection interface\n  - Data export/import functionality\n  - Storage usage monitoring\n  - Debug mode toggle\n  - Application information display\n- Implement data backup/restore utilities\n\n## Developer Experience\n\n- Install and configure husky for git hooks\n- Set up lint-staged for automatic code formatting\n- Add jspdf for future PDF export capability\n- Improve build process and validation\n\n## Package Updates\n\n- Add zod@4.2.1 for runtime validation\n- Add sonner@2.0.7 for toast notifications\n- Add jspdf@3.0.4 for PDF generation\n- Add husky and lint-staged for git hooks\n\nAll changes have been validated with TypeScript type checking, ESLint,\nand production build testing. Bundle size: 478.45 KB \\(gzipped: 136.67 KB\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npm run package:*)",
+      "Bash(git push:*)",
+      "Bash(start \"\" \"GSTCalc Setup 0.1.6.exe\")",
+      "Bash(git tag:*)",
+      "Bash(gh release create:*)",
+      "Bash(git commit:*)",
+      "Bash(gh release:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(echo $env:GH_TOKEN)",
+      "Bash(start \"\" \".\\\\release\\\\GSTCalc Setup 0.1.8.exe\")",
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "Bash(ls:*)",
+      "Bash(taskkill:*)",
+      "Bash(start \"\" \".\\\\release\\\\GSTCalc-Setup-0.1.16.exe\")"
     ]
   }
 }

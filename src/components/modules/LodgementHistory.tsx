@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   XCircle,
   Filter,
+  AlertTriangle,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -206,7 +207,7 @@ export function LodgementHistory() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
-  const [formType, setFormType] = useState<'gst-bas' | 'company-tax'>('gst-bas');
+  const [formType, setFormType] = useState<'gst-bas' | 'company-tax' | 'income-tax'>('gst-bas');
   const [formQuarter, setFormQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>('Q1');
   const [formYear, setFormYear] = useState(new Date().getFullYear());
   const [formStatus, setFormStatus] = useState<'lodged' | 'not-lodged'>('lodged');
@@ -214,13 +215,16 @@ export function LodgementHistory() {
   const [formLodgementDate, setFormLodgementDate] = useState('');
   const [formAmount, setFormAmount] = useState('');
   const [formNotes, setFormNotes] = useState('');
+  const [formHasPenalty, setFormHasPenalty] = useState(false);
+  const [formPenaltyAmount, setFormPenaltyAmount] = useState('');
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
-  const [filterType, setFilterType] = useState<'gst-bas' | 'company-tax' | ''>('');
+  const [filterType, setFilterType] = useState<'gst-bas' | 'company-tax' | 'income-tax' | ''>('');
   const [filterYear, setFilterYear] = useState<number | ''>('');
   const [filterStatus, setFilterStatus] = useState<'lodged' | 'not-lodged' | ''>('');
   const [filterQuarter, setFilterQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4' | ''>('');
+  const [filterHasPenalty, setFilterHasPenalty] = useState<boolean | ''>('');
 
   const filteredRecords = useMemo(() => {
     let filtered = [...records];
@@ -241,24 +245,29 @@ export function LodgementHistory() {
       filtered = filtered.filter((r) => r.quarter === filterQuarter);
     }
 
+    if (filterHasPenalty !== '') {
+      filtered = filtered.filter((r) => r.hasPenalty === filterHasPenalty);
+    }
+
     return filtered.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-  }, [records, filterType, filterYear, filterStatus, filterQuarter]);
+  }, [records, filterType, filterYear, filterStatus, filterQuarter, filterHasPenalty]);
 
   const summary = useMemo(() => {
     const filters: Partial<
-      Record<keyof import('@/types/lodgement').LodgementFilters, string | number>
+      Record<keyof import('@/types/lodgement').LodgementFilters, string | number | boolean>
     > = {};
     if (filterType) filters.type = filterType;
     if (filterYear) filters.year = filterYear;
     if (filterStatus) filters.status = filterStatus;
     if (filterQuarter) filters.quarter = filterQuarter;
+    if (filterHasPenalty !== '') filters.hasPenalty = filterHasPenalty;
 
     return getSummary(
       Object.keys(filters).length > 0
         ? (filters as import('@/types/lodgement').LodgementFilters)
         : undefined,
     );
-  }, [getSummary, filterType, filterYear, filterStatus, filterQuarter]);
+  }, [getSummary, filterType, filterYear, filterStatus, filterQuarter, filterHasPenalty]);
 
   const riskAssessment = useMemo(() => {
     return assessInvestigationRisk(records, atoData?.penalties);
@@ -273,7 +282,7 @@ export function LodgementHistory() {
   }, [formType, formQuarter, formYear, editingId]);
 
   const calculateDueDate = (
-    type: 'gst-bas' | 'company-tax',
+    type: 'gst-bas' | 'company-tax' | 'income-tax',
     quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4',
     year: number,
   ): string => {
@@ -288,8 +297,11 @@ export function LodgementHistory() {
         case 'Q4': // Apr-Jun
           return `${year + 1}-07-28`;
       }
-    } else {
+    } else if (type === 'company-tax') {
       // Company tax: Due Oct 31 following year
+      return `${year + 1}-10-31`;
+    } else {
+      // Income tax: Due Oct 31 following year
       return `${year + 1}-10-31`;
     }
   };
@@ -303,6 +315,8 @@ export function LodgementHistory() {
     setFormLodgementDate('');
     setFormAmount('');
     setFormNotes('');
+    setFormHasPenalty(false);
+    setFormPenaltyAmount('');
     setEditingId(null);
     setShowForm(false);
   };
@@ -319,12 +333,15 @@ export function LodgementHistory() {
     setFormLodgementDate(record.lodgementDate ? record.lodgementDate.slice(0, 10) : '');
     setFormAmount(record.amount.toString());
     setFormNotes(record.notes || '');
+    setFormHasPenalty(record.hasPenalty || false);
+    setFormPenaltyAmount(record.penaltyAmount ? record.penaltyAmount.toString() : '');
     setShowForm(true);
   };
 
   const handleSubmit = () => {
     try {
       const amount = parseFloat(formAmount) || 0;
+      const penaltyAmount = formHasPenalty ? parseFloat(formPenaltyAmount) || 0 : undefined;
 
       if (!formDueDate) {
         toast.error('Due date is required');
@@ -333,6 +350,11 @@ export function LodgementHistory() {
 
       if (formStatus === 'lodged' && !formLodgementDate) {
         toast.error('Lodgement date is required when status is lodged');
+        return;
+      }
+
+      if (formHasPenalty && !formPenaltyAmount) {
+        toast.error('Penalty amount is required when penalty is applied');
         return;
       }
 
@@ -345,6 +367,8 @@ export function LodgementHistory() {
         lodgementDate: formLodgementDate ? new Date(formLodgementDate).toISOString() : undefined,
         amount,
         notes: formNotes,
+        hasPenalty: formHasPenalty || undefined,
+        penaltyAmount,
         source: 'manual' as const,
       };
 
@@ -439,7 +463,8 @@ export function LodgementHistory() {
               <div>
                 <CardTitle className="text-2xl">Lodgement History</CardTitle>
                 <CardDescription>
-                  Track all BAS and company tax lodgements with ATO investigation risk analysis
+                  Track all BAS, company tax, and income tax lodgements with ATO investigation risk
+                  analysis
                 </CardDescription>
               </div>
             </div>
@@ -471,11 +496,14 @@ export function LodgementHistory() {
                 <select
                   className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   value={filterType}
-                  onChange={(e) => setFilterType(e.target.value as 'gst-bas' | 'company-tax' | '')}
+                  onChange={(e) =>
+                    setFilterType(e.target.value as 'gst-bas' | 'company-tax' | 'income-tax' | '')
+                  }
                 >
                   <option value="">All types</option>
                   <option value="gst-bas">GST BAS</option>
                   <option value="company-tax">Company Tax</option>
+                  <option value="income-tax">Income Tax</option>
                 </select>
               </div>
 
@@ -505,6 +533,21 @@ export function LodgementHistory() {
                   <option value="">All statuses</option>
                   <option value="lodged">Lodged</option>
                   <option value="not-lodged">Not Lodged</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Penalty</Label>
+                <select
+                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  value={filterHasPenalty === '' ? '' : filterHasPenalty ? 'true' : 'false'}
+                  onChange={(e) =>
+                    setFilterHasPenalty(e.target.value === '' ? '' : e.target.value === 'true')
+                  }
+                >
+                  <option value="">All records</option>
+                  <option value="true">With Penalty</option>
+                  <option value="false">No Penalty</option>
                 </select>
               </div>
 
@@ -538,6 +581,7 @@ export function LodgementHistory() {
                   setFilterYear('');
                   setFilterStatus('');
                   setFilterQuarter('');
+                  setFilterHasPenalty('');
                 }}
               >
                 Clear Filters
@@ -559,10 +603,13 @@ export function LodgementHistory() {
                 <select
                   className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   value={formType}
-                  onChange={(e) => setFormType(e.target.value as 'gst-bas' | 'company-tax')}
+                  onChange={(e) =>
+                    setFormType(e.target.value as 'gst-bas' | 'company-tax' | 'income-tax')
+                  }
                 >
                   <option value="gst-bas">GST BAS</option>
                   <option value="company-tax">Company Tax</option>
+                  <option value="income-tax">Income Tax</option>
                 </select>
               </div>
 
@@ -655,6 +702,34 @@ export function LodgementHistory() {
               />
             </div>
 
+            <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="hasPenalty"
+                  checked={formHasPenalty}
+                  onChange={(e) => setFormHasPenalty(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-700"
+                />
+                <Label htmlFor="hasPenalty" className="cursor-pointer font-medium">
+                  ATO Penalty Applied
+                </Label>
+              </div>
+
+              {formHasPenalty && (
+                <div className="space-y-2">
+                  <Label>Penalty Amount</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formPenaltyAmount}
+                    onChange={(e) => setFormPenaltyAmount(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={resetForm}>
                 Cancel
@@ -669,7 +744,7 @@ export function LodgementHistory() {
       {records.length > 0 && <InvestigationRiskPanel riskAssessment={riskAssessment} />}
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -718,6 +793,17 @@ export function LodgementHistory() {
               )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">Total Refund</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+              {formatCurrency(summary.totalPenalties)}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Penalties ({summary.penaltyCount})
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -793,14 +879,18 @@ export function LodgementHistory() {
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <Badge variant={record.type === 'gst-bas' ? 'default' : 'outline'}>
-                        {record.type === 'gst-bas' ? 'BAS' : 'Company Tax'}
+                        {record.type === 'gst-bas'
+                          ? 'BAS'
+                          : record.type === 'company-tax'
+                            ? 'Company Tax'
+                            : 'Income Tax'}
                       </Badge>
                       {record.type === 'gst-bas' && record.quarter && (
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                           {record.quarter} {record.year}
                         </span>
                       )}
-                      {record.type === 'company-tax' && (
+                      {(record.type === 'company-tax' || record.type === 'income-tax') && (
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                           {record.year}
                         </span>
@@ -809,6 +899,14 @@ export function LodgementHistory() {
                         <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                       ) : (
                         <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      )}
+                      {record.hasPenalty && (
+                        <div className="flex items-center gap-1">
+                          <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                          <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                            Penalty
+                          </span>
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-4 text-xs text-slate-600 dark:text-slate-400">
@@ -822,6 +920,11 @@ export function LodgementHistory() {
                         Amount: {formatCurrency(Math.abs(record.amount))}{' '}
                         {record.amount < 0 ? '(Refund)' : '(Debt)'}
                       </span>
+                      {record.hasPenalty && record.penaltyAmount && (
+                        <span className="font-semibold text-orange-600 dark:text-orange-400">
+                          Penalty: {formatCurrency(record.penaltyAmount)}
+                        </span>
+                      )}
                       <span>Due: {new Date(record.dueDate).toLocaleDateString('en-AU')}</span>
                       {record.lodgementDate && (
                         <span>
@@ -835,10 +938,23 @@ export function LodgementHistory() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => loadEditForm(record)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => loadEditForm(record)}
+                      title="Edit this lodgement"
+                      aria-label="Edit lodgement"
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(record.id)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(record.id)}
+                      title="Delete this lodgement"
+                      aria-label="Delete lodgement"
+                      className="hover:text-red-600 dark:hover:text-red-400"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
