@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   FileTextIcon,
   PlusIcon,
@@ -205,6 +205,7 @@ export function LodgementHistory() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Form state
   const [formType, setFormType] = useState<'gst-bas' | 'company-tax' | 'income-tax'>('gst-bas');
@@ -336,6 +337,11 @@ export function LodgementHistory() {
     setFormHasPenalty(record.hasPenalty || false);
     setFormPenaltyAmount(record.penaltyAmount ? record.penaltyAmount.toString() : '');
     setShowForm(true);
+
+    // Scroll to form after it renders
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleSubmit = () => {
@@ -592,7 +598,10 @@ export function LodgementHistory() {
 
         {/* Entry Form */}
         {showForm && (
-          <CardContent className="space-y-4 border-t border-slate-200 bg-slate-50 pt-4 dark:border-slate-700 dark:bg-slate-900">
+          <CardContent
+            ref={formRef}
+            className="space-y-4 border-t border-slate-200 bg-slate-50 pt-4 dark:border-slate-700 dark:bg-slate-900"
+          >
             <h3 className="font-semibold text-slate-900 dark:text-slate-100">
               {editingId ? 'Edit Lodgement' : 'Add New Lodgement'}
             </h3>
