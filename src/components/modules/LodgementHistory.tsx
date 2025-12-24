@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   FileTextIcon,
   PlusIcon,
@@ -90,6 +90,36 @@ export function LodgementHistory() {
     return assessInvestigationRisk(records, atoData?.penalties);
   }, [records, atoData]);
 
+  // Auto-populate due date when type, quarter, or year changes (only for new records, not when editing)
+  useEffect(() => {
+    if (!editingId) {
+      const dueDate = calculateDueDate(formType, formQuarter, formYear);
+      setFormDueDate(dueDate);
+    }
+  }, [formType, formQuarter, formYear, editingId]);
+
+  const calculateDueDate = (
+    type: 'gst-bas' | 'company-tax',
+    quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4',
+    year: number,
+  ): string => {
+    if (type === 'gst-bas') {
+      switch (quarter) {
+        case 'Q1': // Jul-Sep
+          return `${year}-10-28`;
+        case 'Q2': // Oct-Dec
+          return `${year + 1}-02-28`;
+        case 'Q3': // Jan-Mar
+          return `${year + 1}-04-28`;
+        case 'Q4': // Apr-Jun
+          return `${year + 1}-07-28`;
+      }
+    } else {
+      // Company tax: Due Oct 31 following year
+      return `${year + 1}-10-31`;
+    }
+  };
+
   const resetForm = () => {
     setFormType('gst-bas');
     setFormQuarter('Q1');
@@ -171,7 +201,8 @@ export function LodgementHistory() {
 
   const getYearRange = () => {
     const currentYear = new Date().getFullYear();
-    return Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
+    // 10 years back + current year + 2 years forward = 13 total years
+    return Array.from({ length: 13 }, (_, i) => currentYear - 10 + i);
   };
 
   return (
