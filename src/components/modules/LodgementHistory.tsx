@@ -939,23 +939,26 @@ export function LodgementHistory() {
 
                   <div className="flex gap-2">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => loadEditForm(record)}
                       title="Edit this lodgement"
                       aria-label="Edit lodgement"
+                      className="gap-1"
                     >
                       <Pencil className="h-4 w-4" />
+                      <span>Edit</span>
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => handleDelete(record.id)}
                       title="Delete this lodgement"
                       aria-label="Delete lodgement"
-                      className="hover:text-red-600 dark:hover:text-red-400"
+                      className="gap-1 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300"
                     >
                       <Trash2 className="h-4 w-4" />
+                      <span>Delete</span>
                     </Button>
                   </div>
                 </div>
