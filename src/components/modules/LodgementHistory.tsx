@@ -23,6 +23,180 @@ import { InvestigationRiskPanel } from './InvestigationRiskPanel';
 
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const;
 
+// BAS history import data
+const BAS_HISTORY_IMPORT = [
+  {
+    type: 'gst-bas' as const,
+    year: 2024,
+    quarter: 'Q1' as const,
+    status: 'lodged' as const,
+    dueDate: '2024-11-25',
+    lodgementDate: '2024-10-24',
+    amount: 2755.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2023,
+    quarter: 'Q4' as const,
+    status: 'lodged' as const,
+    dueDate: '2024-08-26',
+    lodgementDate: '2024-09-18',
+    amount: 1399.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2023,
+    quarter: 'Q3' as const,
+    status: 'lodged' as const,
+    dueDate: '2024-05-28',
+    lodgementDate: '2024-09-18',
+    amount: 587.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2023,
+    quarter: 'Q2' as const,
+    status: 'lodged' as const,
+    dueDate: '2024-02-28',
+    lodgementDate: '2024-04-13',
+    amount: -235.0,
+    notes: 'Refund',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2023,
+    quarter: 'Q1' as const,
+    status: 'lodged' as const,
+    dueDate: '2023-11-27',
+    lodgementDate: '2023-10-29',
+    amount: 1631.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2022,
+    quarter: 'Q4' as const,
+    status: 'lodged' as const,
+    dueDate: '2023-08-25',
+    lodgementDate: '2023-07-28',
+    amount: 1841.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2022,
+    quarter: 'Q3' as const,
+    status: 'lodged' as const,
+    dueDate: '2023-05-26',
+    lodgementDate: '2023-05-23',
+    amount: 640.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2022,
+    quarter: 'Q2' as const,
+    status: 'lodged' as const,
+    dueDate: '2023-02-28',
+    lodgementDate: '2023-02-08',
+    amount: 853.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2022,
+    quarter: 'Q1' as const,
+    status: 'lodged' as const,
+    dueDate: '2022-10-28',
+    lodgementDate: '2022-10-13',
+    amount: -345.0,
+    notes: 'Refund',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2021,
+    quarter: 'Q4' as const,
+    status: 'lodged' as const,
+    dueDate: '2022-07-28',
+    lodgementDate: '2022-08-23',
+    amount: -277.0,
+    notes: 'Refund',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2021,
+    quarter: 'Q3' as const,
+    status: 'lodged' as const,
+    dueDate: '2022-05-26',
+    lodgementDate: '2022-06-24',
+    amount: 493.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2021,
+    quarter: 'Q2' as const,
+    status: 'lodged' as const,
+    dueDate: '2022-02-28',
+    lodgementDate: '2022-01-17',
+    amount: -16.0,
+    notes: 'Refund',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2021,
+    quarter: 'Q1' as const,
+    status: 'lodged' as const,
+    dueDate: '2021-11-25',
+    lodgementDate: '2021-11-03',
+    amount: 1424.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2020,
+    quarter: 'Q4' as const,
+    status: 'lodged' as const,
+    dueDate: '2021-07-28',
+    lodgementDate: '2021-07-13',
+    amount: 106.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2020,
+    quarter: 'Q3' as const,
+    status: 'lodged' as const,
+    dueDate: '2021-04-28',
+    lodgementDate: '2021-05-03',
+    amount: 582.0,
+    notes: 'Debt',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2020,
+    quarter: 'Q2' as const,
+    status: 'lodged' as const,
+    dueDate: '2021-02-28',
+    lodgementDate: '2021-03-01',
+    amount: -551.0,
+    notes: 'Refund',
+  },
+  {
+    type: 'gst-bas' as const,
+    year: 2020,
+    quarter: 'Q1' as const,
+    status: 'lodged' as const,
+    dueDate: '2020-10-28',
+    lodgementDate: '2020-11-04',
+    amount: -4132.0,
+    notes: 'Refund',
+  },
+];
+
 export function LodgementHistory() {
   const { records, addLodgement, updateLodgement, removeLodgement, getSummary } =
     useLodgementHistoryStore();
@@ -199,6 +373,53 @@ export function LodgementHistory() {
     }
   };
 
+  const handleBulkImport = () => {
+    if (
+      !confirm(
+        `This will import ${BAS_HISTORY_IMPORT.length} BAS records from 2020-2024. Continue?`,
+      )
+    ) {
+      return;
+    }
+
+    let successCount = 0;
+    let skipCount = 0;
+    let errorCount = 0;
+
+    BAS_HISTORY_IMPORT.forEach((record) => {
+      try {
+        // Convert date strings to ISO format
+        const recordWithIso = {
+          ...record,
+          dueDate: new Date(record.dueDate + 'T00:00:00').toISOString(),
+          lodgementDate: new Date(record.lodgementDate + 'T00:00:00').toISOString(),
+          source: 'manual' as const,
+        };
+
+        addLodgement(recordWithIso);
+        successCount++;
+      } catch (error) {
+        const errorMessage = (error as Error).message || '';
+        if (errorMessage.includes('already exists')) {
+          skipCount++;
+        } else {
+          errorCount++;
+          console.error('Import error:', error);
+        }
+      }
+    });
+
+    if (successCount > 0) {
+      toast.success(`Imported ${successCount} records successfully`);
+    }
+    if (skipCount > 0) {
+      toast.info(`Skipped ${skipCount} duplicate records`);
+    }
+    if (errorCount > 0) {
+      toast.error(`Failed to import ${errorCount} records`);
+    }
+  };
+
   const getYearRange = () => {
     const currentYear = new Date().getFullYear();
     // 10 years back + current year + 2 years forward = 13 total years
@@ -227,6 +448,12 @@ export function LodgementHistory() {
                 <Filter className="mr-2 h-4 w-4" />
                 Filters
               </Button>
+              {records.length === 0 && (
+                <Button variant="outline" size="sm" onClick={handleBulkImport}>
+                  <FileTextIcon className="mr-2 h-4 w-4" />
+                  Import BAS History
+                </Button>
+              )}
               <Button size="sm" onClick={() => setShowForm(!showForm)}>
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Add Lodgement
@@ -441,8 +668,8 @@ export function LodgementHistory() {
       {/* Risk Analysis Panel */}
       {records.length > 0 && <InvestigationRiskPanel riskAssessment={riskAssessment} />}
 
-      {/* Summary Card */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -472,13 +699,73 @@ export function LodgementHistory() {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              {formatCurrency(summary.totalAmount)}
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+              {formatCurrency(
+                filteredRecords.filter((r) => r.amount > 0).reduce((sum, r) => sum + r.amount, 0),
+              )}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Total Amount</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Total Debt</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              {formatCurrency(
+                Math.abs(
+                  filteredRecords.filter((r) => r.amount < 0).reduce((sum, r) => sum + r.amount, 0),
+                ),
+              )}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Total Refund</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Net Position Card */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Net Position</p>
+              <p
+                className={`text-3xl font-bold ${
+                  summary.totalAmount > 0
+                    ? 'text-red-600 dark:text-red-400'
+                    : summary.totalAmount < 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-slate-900 dark:text-slate-100'
+                }`}
+              >
+                {formatCurrency(Math.abs(summary.totalAmount))}{' '}
+                {summary.totalAmount > 0
+                  ? 'owed'
+                  : summary.totalAmount < 0
+                    ? 'refunded'
+                    : 'balanced'}
+              </p>
+            </div>
+            <div className="text-right text-sm text-slate-600 dark:text-slate-400">
+              <p>
+                Debts:{' '}
+                {formatCurrency(
+                  filteredRecords.filter((r) => r.amount > 0).reduce((sum, r) => sum + r.amount, 0),
+                )}
+              </p>
+              <p>
+                Refunds:{' '}
+                {formatCurrency(
+                  Math.abs(
+                    filteredRecords
+                      .filter((r) => r.amount < 0)
+                      .reduce((sum, r) => sum + r.amount, 0),
+                  ),
+                )}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Records List */}
       <Card>
@@ -525,7 +812,16 @@ export function LodgementHistory() {
                       )}
                     </div>
                     <div className="flex gap-4 text-xs text-slate-600 dark:text-slate-400">
-                      <span>Amount: {formatCurrency(record.amount)}</span>
+                      <span
+                        className={
+                          record.amount < 0
+                            ? 'font-semibold text-green-600 dark:text-green-400'
+                            : 'font-semibold text-red-600 dark:text-red-400'
+                        }
+                      >
+                        Amount: {formatCurrency(Math.abs(record.amount))}{' '}
+                        {record.amount < 0 ? '(Refund)' : '(Debt)'}
+                      </span>
                       <span>Due: {new Date(record.dueDate).toLocaleDateString('en-AU')}</span>
                       {record.lodgementDate && (
                         <span>

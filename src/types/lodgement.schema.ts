@@ -4,7 +4,7 @@ export const LodgementRecordSchema = z
   .object({
     id: z.string().min(1, 'ID is required'),
     type: z.enum(['gst-bas', 'company-tax'], {
-      errorMap: () => ({ message: 'Type must be either gst-bas or company-tax' }),
+      message: 'Type must be either gst-bas or company-tax',
     }),
     year: z
       .number()
@@ -13,7 +13,7 @@ export const LodgementRecordSchema = z
       .max(2100, 'Year must be 2100 or earlier'),
     quarter: z.enum(['Q1', 'Q2', 'Q3', 'Q4']).optional(),
     status: z.enum(['lodged', 'not-lodged'], {
-      errorMap: () => ({ message: 'Status must be either lodged or not-lodged' }),
+      message: 'Status must be either lodged or not-lodged',
     }),
     dueDate: z.string().datetime('Due date must be a valid ISO 8601 date'),
     lodgementDate: z.string().datetime('Lodgement date must be a valid ISO 8601 date').optional(),
