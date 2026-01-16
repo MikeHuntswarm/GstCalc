@@ -152,17 +152,55 @@ gh run list --status failure --limit 10
 5. Rerun failed jobs: `gh run rerun [run-id] --failed`
 6. Monitor until passing
 
-### Step 4: Review Past Failures
+### Step 4: Resolve ALL Failed Runs
 
-**Before deployment, ensure no unresolved failures exist:**
+**⚠️ CRITICAL: A new passing run does NOT clear old failures.**
+
+Every failed workflow must be explicitly resolved. Do not proceed until the failure list is empty or all failures are documented as superseded.
 
 ```bash
-# List all failed runs
-gh run list --status failure --limit 20
+# List ALL failed runs
+gh run list --status failure --limit 50
+```
 
-# For each:
-# - If fixable: fix, push, rerun
-# - If obsolete: document why it's acceptable
+**For EACH failed run, you MUST:**
+
+1. **Check if superseded** (failure was from old code that's now fixed):
+
+   ```bash
+   # Get the commit SHA of the failed run
+   gh run view [failed-run-id] --json headSha -q '.headSha'
+
+   # Compare to current HEAD
+   git rev-parse HEAD
+
+   # If different AND the fix addresses the failure → Superseded
+   ```
+
+2. **If superseded**: Document it, then the failure can be ignored
+   - Add to commit message: "Supersedes failed run [id] - [reason]"
+   - OR note in PR description
+
+3. **If NOT superseded** (same SHA or issue still exists):
+   - **STOP** - Do not create new commits to "cover" the failure
+   - **FIX** the actual issue in the code
+   - **PUSH** the fix
+   - **WAIT** for new run to complete
+   - **VERIFY** new run passes
+
+4. **Never do this:**
+   - ❌ Push a new commit hoping the old failure "goes away"
+   - ❌ Ignore red runs because a newer green run exists
+   - ❌ Assume failures are "flaky" without investigation
+   - ❌ Proceed with deployment while ANY failure is unresolved
+
+**Resolution Status Check:**
+
+```bash
+# This should return EMPTY before proceeding
+gh run list --status failure --limit 50 --json databaseId,name,headSha,createdAt
+
+# If not empty, resolve each one explicitly
 ```
 
 ### Step 5: Deployment Gate Check
