@@ -152,71 +152,91 @@ gh run list --status failure --limit 10
 5. Rerun failed jobs: `gh run rerun [run-id] --failed`
 6. Monitor until passing
 
-### Step 4: Resolve ALL Failed Runs
+### Step 4: Investigate and Resolve ALL Failed/Cancelled Runs
 
-**⚠️ CRITICAL: A new passing run does NOT clear old failures.**
+**⚠️ MANDATORY: You MUST investigate every failed and cancelled run before proceeding.**
 
-Every failed workflow must be explicitly resolved. Do not proceed until the failure list is empty or all failures are documented as superseded.
+A new passing run does NOT clear old failures. You cannot proceed until every failed/cancelled run has been investigated and either FIXED or REMOVED.
 
-```bash
-# List ALL failed runs
-gh run list --status failure --limit 50
-```
-
-**For EACH failed run, you MUST:**
-
-1. **Check if superseded** (failure was from old code that's now fixed):
-
-   ```bash
-   # Get the commit SHA of the failed run
-   gh run view [failed-run-id] --json headSha -q '.headSha'
-
-   # Compare to current HEAD
-   git rev-parse HEAD
-
-   # If different AND the fix addresses the failure → Superseded
-   ```
-
-2. **If superseded**: Document it, then the failure can be ignored
-   - Add to commit message: "Supersedes failed run [id] - [reason]"
-   - OR note in PR description
-
-3. **If NOT superseded** (same SHA or issue still exists):
-   - **STOP** - Do not create new commits to "cover" the failure
-   - **FIX** the actual issue in the code
-   - **PUSH** the fix
-   - **WAIT** for new run to complete
-   - **VERIFY** new run passes
-
-4. **Never do this:**
-   - ❌ Push a new commit hoping the old failure "goes away"
-   - ❌ Ignore red runs because a newer green run exists
-   - ❌ Assume failures are "flaky" without investigation
-   - ❌ Proceed with deployment while ANY failure is unresolved
-
-**Resolution Status Check:**
+**FIRST: List all failed and cancelled runs:**
 
 ```bash
-# This should return EMPTY before proceeding
-gh run list --status failure --limit 50 --json databaseId,name,headSha,createdAt
+# Get ALL failed runs
+gh run list --status failure --limit 50 --json databaseId,workflowName,headSha,createdAt,conclusion
 
-# If not empty, resolve each one explicitly
+# Get ALL cancelled runs
+gh run list --status cancelled --limit 50 --json databaseId,workflowName,headSha,createdAt,conclusion
 ```
+
+**THEN: For EACH failed/cancelled run, you MUST investigate:**
+
+```bash
+# 1. View the run details
+gh run view [run-id]
+
+# 2. For failures - see what went wrong
+gh run view [run-id] --log-failed
+
+# 3. Check which commit triggered it
+gh run view [run-id] --json headSha -q '.headSha'
+```
+
+**AFTER investigating, choose ONE resolution:**
+
+| Resolution   | When to Use                                              | Action Required                                |
+| ------------ | -------------------------------------------------------- | ---------------------------------------------- |
+| **FIX**      | Issue still exists in current code                       | Fix the code, push, verify new run passes      |
+| **RERUN**    | Flaky test / transient failure                           | `gh run rerun [run-id]` and watch until passes |
+| **DELETE**   | Obsolete (old branch, superseded commit, abandoned work) | `gh run delete [run-id]`                       |
+| **DOCUMENT** | Cannot fix now but acknowledged                          | Add to technical debt log with issue number    |
+
+**Resolution workflow:**
+
+```bash
+# Option A: Delete obsolete runs (old commits that have been superseded)
+gh run delete [run-id]
+
+# Option B: Rerun if it was a transient failure
+gh run rerun [run-id]
+gh run watch [run-id]
+
+# Option C: Fix the issue
+# 1. Fix code
+# 2. git add -A && git commit -m "fix: [description]" && git push
+# 3. gh run watch [new-run-id]
+```
+
+**VERIFICATION - Run this and it MUST return empty arrays:**
+
+```bash
+echo "=== Failed runs (must be empty) ==="
+gh run list --status failure --limit 50 --json databaseId,workflowName
+echo "=== Cancelled runs (must be empty) ==="
+gh run list --status cancelled --limit 50 --json databaseId,workflowName
+```
+
+**❌ NEVER do this:**
+
+- Skip investigating a failed/cancelled run
+- Push new commits hoping old failures "disappear"
+- Ignore red/yellow runs because a newer green run exists
+- Assume failures are "flaky" without running `gh run view --log-failed`
+- Proceed while ANY unresolved failed/cancelled runs exist
 
 ### Step 5: Deployment Gate Check
 
 ```
-┌─────────────────────────────────────────────────┐
-│ 🚀 DEPLOYMENT READINESS CHECK                   │
-├─────────────────────────────────────────────────┤
-│ [✓/✗] All commits pushed                        │
-│ [✓/✗] All workflow runs passing                 │
-│ [✓/✗] No unresolved failed actions              │
-│ [✓/✗] Security checklist complete               │
-│ [✓/✗] PROJECT_REVIEW.md generated (if review)   │
-├─────────────────────────────────────────────────┤
-│ DEPLOY STATUS: [READY / BLOCKED]                │
-└─────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ðŸš€ DEPLOYMENT READINESS CHECK                   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ [âœ“/âœ—] All commits pushed                        â”‚
+â”‚ [âœ“/âœ—] All workflow runs passing                 â”‚
+â”‚ [âœ“/âœ—] No unresolved failed actions              â”‚
+â”‚ [âœ“/âœ—] Security checklist complete               â”‚
+â”‚ [âœ“/âœ—] PROJECT_REVIEW.md generated (if review)   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ DEPLOY STATUS: [READY / BLOCKED]                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **HARD BLOCK**: Deployment cannot proceed if:
