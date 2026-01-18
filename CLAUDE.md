@@ -99,6 +99,21 @@ npm run lint          # ESLint check
 | "Project status"   | Show overall progress                    |
 | "Review" / "Audit" | Generate PROJECT_REVIEW.md               |
 | "Maintenance"      | Run code hygiene checks                  |
+| "Reflect"          | Session retrospective                    |
+
+### Auto-Reflect Triggers (No User Prompt Needed)
+
+**Run `.prompts/auto-reflect.prompt.md` automatically when:**
+
+| Trigger              | When                                               | What to Capture                |
+| -------------------- | -------------------------------------------------- | ------------------------------ |
+| **CI failure fixed** | After resolving any failed/cancelled workflow      | Root cause, prevention         |
+| **Phase completed**  | After completing all tasks in a PROJECT_PLAN phase | What went well, what was hard  |
+| **Error pattern**    | After fixing 3+ errors in one session              | Common thread, systemic issue  |
+| **Session ending**   | User says "bye", "done", "finished", "end session" | Completed tasks, next priority |
+| **Deployment done**  | After successful deployment                        | What was deployed, any issues  |
+
+**Auto-reflect is brief (max 10 lines) and always updates `.project-state.json`.**
 
 ---
 
@@ -154,7 +169,7 @@ gh run list --status failure --limit 10
 
 ### Step 4: Investigate and Resolve ALL Failed/Cancelled Runs
 
-**⚠️ MANDATORY: You MUST investigate every failed and cancelled run before proceeding.**
+**âš ï¸ MANDATORY: You MUST investigate every failed and cancelled run before proceeding.**
 
 A new passing run does NOT clear old failures. You cannot proceed until every failed/cancelled run has been investigated and either FIXED or REMOVED.
 
@@ -215,7 +230,7 @@ echo "=== Cancelled runs (must be empty) ==="
 gh run list --status cancelled --limit 50 --json databaseId,workflowName
 ```
 
-**❌ NEVER do this:**
+**âŒ NEVER do this:**
 
 - Skip investigating a failed/cancelled run
 - Push new commits hoping old failures "disappear"
@@ -226,17 +241,17 @@ gh run list --status cancelled --limit 50 --json databaseId,workflowName
 ### Step 5: Deployment Gate Check
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ ðŸš€ DEPLOYMENT READINESS CHECK                   â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ [âœ“/âœ—] All commits pushed                        â”‚
-â”‚ [âœ“/âœ—] All workflow runs passing                 â”‚
-â”‚ [âœ“/âœ—] No unresolved failed actions              â”‚
-â”‚ [âœ“/âœ—] Security checklist complete               â”‚
-â”‚ [âœ“/âœ—] PROJECT_REVIEW.md generated (if review)   â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ DEPLOY STATUS: [READY / BLOCKED]                â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+Ã¢â€Å’Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â
+Ã¢â€â€š Ã°Å¸Å¡â‚¬ DEPLOYMENT READINESS CHECK                   Ã¢â€â€š
+Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â¤
+Ã¢â€â€š [Ã¢Å“â€œ/Ã¢Å“â€”] All commits pushed                        Ã¢â€â€š
+Ã¢â€â€š [Ã¢Å“â€œ/Ã¢Å“â€”] All workflow runs passing                 Ã¢â€â€š
+Ã¢â€â€š [Ã¢Å“â€œ/Ã¢Å“â€”] No unresolved failed actions              Ã¢â€â€š
+Ã¢â€â€š [Ã¢Å“â€œ/Ã¢Å“â€”] Security checklist complete               Ã¢â€â€š
+Ã¢â€â€š [Ã¢Å“â€œ/Ã¢Å“â€”] PROJECT_REVIEW.md generated (if review)   Ã¢â€â€š
+Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â¤
+Ã¢â€â€š DEPLOY STATUS: [READY / BLOCKED]                Ã¢â€â€š
+Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ
 ```
 
 **HARD BLOCK**: Deployment cannot proceed if:
