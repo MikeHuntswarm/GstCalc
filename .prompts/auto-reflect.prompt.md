@@ -121,7 +121,7 @@ Run this automatically when:
 
 ## State Update
 
-Always update `.project-state.json` with:
+**MANDATORY: Update `.project-state.json` immediately after showing the reflect box.**
 
 ```json
 {
@@ -136,8 +136,40 @@ Always update `.project-state.json` with:
 
 ## Rules
 
-1. **Keep it brief** - Max 10 lines of content
-2. **Always update state** - .project-state.json must be updated
-3. **Don't ask permission** - This is automatic, just do it
-4. **Focus on actionable insights** - Skip fluff
-5. **Trigger naturally** - Don't announce "running auto-reflect", just show the box
+**⚠️ CRITICAL - READ CAREFULLY:**
+
+1. **AUTOMATIC TRIGGER** - When a trigger condition is met (CI fix, phase complete, etc.), run this IMMEDIATELY without being asked
+2. **NO PERMISSION NEEDED** - Do NOT ask "Would you like me to..." - just do it
+3. **ALWAYS UPDATE STATE** - After showing the reflect box, update `.project-state.json` in the same response
+4. **KEEP IT BRIEF** - Max 10 lines of content in the box
+5. **DON'T ANNOUNCE** - Don't say "running auto-reflect" - just show the box naturally
+
+**❌ NEVER DO THIS:**
+
+```
+"Would you like me to update .project-state.json?"
+"Should I run a reflection?"
+"I can run an auto-reflect if you want"
+```
+
+**✅ ALWAYS DO THIS:**
+
+```
+[Show reflect box]
+[Immediately update .project-state.json]
+[Continue with next task or end response]
+```
+
+## Trigger Detection
+
+**You MUST self-check after these events:**
+
+| Event                 | Check                                | Action                         |
+| --------------------- | ------------------------------------ | ------------------------------ |
+| Fixed a CI failure    | Did I just fix a workflow?           | → Run CI FAILURE RETROSPECTIVE |
+| Completed phase tasks | Are all tasks in current phase done? | → Run PHASE COMPLETE           |
+| Fixed 3+ errors       | Count errors fixed this session      | → Run ERROR PATTERN DETECTED   |
+| User ending session   | Did user say bye/done/finished?      | → Run SESSION WRAP-UP          |
+| Deployed something    | Did I just deploy?                   | → Run deployment retrospective |
+
+**If ANY trigger condition is true → Run auto-reflect immediately, no questions asked.**
