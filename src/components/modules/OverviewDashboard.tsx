@@ -1,20 +1,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
-import { CalendarCheckIcon, LineChartIcon } from 'lucide-react';
+import { CalendarCheckIcon, LineChartIcon, ShieldAlertIcon } from 'lucide-react';
 import { useAtoStore } from '@/store/ato';
 import { useRemindersStore } from '@/store/reminders';
+import { useLodgementHistoryStore } from '@/store/lodgementHistory';
+import { assessInvestigationRisk } from '@/lib/calculations/atoInvestigationRisk';
 import { formatPercent } from '@/lib/utils';
+import { useMemo } from 'react';
 
 export function OverviewDashboard() {
   const { data, status, error, stale } = useAtoStore();
   const { getUpcomingReminders } = useRemindersStore();
+  const { records: lodgementRecords } = useLodgementHistoryStore();
 
   const gstRate = data?.gst.standardRate ?? 0.1;
   const lastUpdated = data?.metadata.lastUpdated;
   const baseRate = data?.company?.baseRateEntity;
   const fullRate = data?.company?.fullRate;
   const upcomingReminders = getUpcomingReminders(30);
+
+  const riskAssessment = useMemo(() => {
+    if (lodgementRecords.length === 0) return null;
+    return assessInvestigationRisk(lodgementRecords, data?.penalties);
+  }, [lodgementRecords, data?.penalties]);
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -43,7 +52,8 @@ export function OverviewDashboard() {
           </p>
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <Badge variant="outline">
-              Status: {status === 'loading' ? 'Loading' : status === 'error' ? 'Using cache' : 'Ready'}
+              Status:{' '}
+              {status === 'loading' ? 'Loading' : status === 'error' ? 'Using cache' : 'Ready'}
             </Badge>
             {stale ? <Badge variant="warning">Cached data may be out of date</Badge> : null}
             {error ? <span className="text-danger-foreground text-xs">{String(error)}</span> : null}
@@ -68,12 +78,16 @@ export function OverviewDashboard() {
         <CardContent className="space-y-3">
           {upcomingReminders.length === 0 ? (
             <Alert>
-              No upcoming reminders in the next 30 days. Add lodgement reminders from the Reminders tab.
+              No upcoming reminders in the next 30 days. Add lodgement reminders from the Reminders
+              tab.
             </Alert>
           ) : (
             <div className="space-y-3">
               {upcomingReminders.slice(0, 3).map((reminder) => (
-                <div key={reminder.id} className="flex items-center justify-between gap-3 rounded-lg border border-muted bg-white px-3 py-2">
+                <div
+                  key={reminder.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-muted bg-white px-3 py-2"
+                >
                   <div>
                     <div className="flex items-center gap-2">
                       <Badge>{reminder.category}</Badge>
@@ -138,6 +152,46 @@ export function OverviewDashboard() {
           )}
         </CardContent>
       </Card>
+      {riskAssessment ? (
+        <Card
+          className={
+            riskAssessment.overallRisk === 'critical'
+              ? 'border-2 border-red-400 dark:border-red-600'
+              : riskAssessment.overallRisk === 'high'
+                ? 'border-2 border-orange-400 dark:border-orange-600'
+                : ''
+          }
+        >
+          <CardHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200">
+                <ShieldAlertIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <CardTitle className="text-2xl">ATO Risk Score</CardTitle>
+                <CardDescription>Based on your lodgement history patterns</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-3xl font-bold text-red-700 dark:text-red-300">
+                {riskAssessment.overallRisk.toUpperCase()}
+              </p>
+              <p className="text-2xl font-semibold text-slate-700 dark:text-slate-300">
+                {riskAssessment.riskScore}/100
+              </p>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {riskAssessment.flags.length} risk flag{riskAssessment.flags.length !== 1 ? 's' : ''}{' '}
+              detected.
+              {riskAssessment.flags.length > 0
+                ? ' Open the Lodgement History tab for details.'
+                : ''}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

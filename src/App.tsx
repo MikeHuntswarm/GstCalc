@@ -132,6 +132,24 @@ export default function App() {
               data from the ATO.
             </Alert>
           ) : null}
+          {data && lastUpdated
+            ? (() => {
+                const daysSinceUpdate = Math.floor(
+                  (Date.now() - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24),
+                );
+                if (daysSinceUpdate > 7) {
+                  return (
+                    <Alert variant="destructive">
+                      ATO rate data is {daysSinceUpdate} days old. Tax brackets, penalty units, and
+                      interest rates may have changed since{' '}
+                      {new Date(lastUpdated).toLocaleDateString('en-AU')}. Open the Settings tab to
+                      refresh rates, or click the Refresh rates button above.
+                    </Alert>
+                  );
+                }
+                return null;
+              })()
+            : null}
 
           <Tabs defaultValue="overview" className="space-y-6">
             <div className="overflow-x-auto pb-1">
@@ -235,14 +253,14 @@ export default function App() {
             <p>
               Offline mode caches the last downloaded rate schedule for up to seven days. See the{' '}
               <a
-                href="https://github.com/your-username/GstCalc/tree/master/docs/support.md"
+                href="https://github.com/MikeHuntswarm/GstCalc/tree/main/docs/support.md"
                 className="underline decoration-slate-400 hover:decoration-slate-700"
               >
                 support & privacy notes
               </a>{' '}
               and{' '}
               <a
-                href="https://github.com/your-username/GstCalc/tree/master/docs/legal.md"
+                href="https://github.com/MikeHuntswarm/GstCalc/tree/main/docs/legal.md"
                 className="underline decoration-slate-400 hover:decoration-slate-700"
               >
                 legal disclaimer

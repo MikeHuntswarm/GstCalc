@@ -27,7 +27,7 @@ async function createMainWindow() {
       preload: resolvePreload(),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
   });
 
@@ -64,7 +64,7 @@ function setupAutoUpdates(mainWindow: BrowserWindow) {
       provider: 'github',
       owner: 'MikeHuntswarm',
       repo: 'GstCalc',
-      private: true,
+      private: false,
       token: ghToken,
     });
   } else {

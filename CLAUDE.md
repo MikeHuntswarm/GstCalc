@@ -282,3 +282,17 @@ gh run list --status cancelled --limit 50 --json databaseId,workflowName
 - Critical/High security issues unresolved
 
 **Note**: CI/CD is a HARD BLOCK (not scored) - deployment cannot proceed with failed workflows.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues via `gh` CLI. PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at repo root. See `docs/agents/domain.md`.
