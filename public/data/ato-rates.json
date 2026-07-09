@@ -1,7 +1,7 @@
 {
   "metadata": {
     "source": "https://www.ato.gov.au",
-    "lastUpdated": "2025-07-01"
+    "lastUpdated": "2026-07-09"
   },
   "gst": {
     "standardRate": 0.1,
@@ -10,96 +10,47 @@
   "individual": {
     "financialYears": [
       {
+        "year": "2026-27",
+        "effectiveFrom": "2026-07-01",
+        "taxBrackets": [
+          { "threshold": 0, "baseTax": 0, "rate": 0 },
+          { "threshold": 18201, "baseTax": 0, "rate": 0.15 },
+          { "threshold": 45001, "baseTax": 4020, "rate": 0.3 },
+          { "threshold": 135001, "baseTax": 31020, "rate": 0.37 },
+          { "threshold": 190001, "baseTax": 51370, "rate": 0.45 }
+        ]
+      },
+      {
         "year": "2025-26",
         "effectiveFrom": "2025-07-01",
         "taxBrackets": [
-          {
-            "threshold": 0,
-            "baseTax": 0,
-            "rate": 0
-          },
-          {
-            "threshold": 18201,
-            "baseTax": 0,
-            "rate": 0.16
-          },
-          {
-            "threshold": 45001,
-            "baseTax": 4288,
-            "rate": 0.3
-          },
-          {
-            "threshold": 135001,
-            "baseTax": 31288,
-            "rate": 0.37
-          },
-          {
-            "threshold": 190001,
-            "baseTax": 51638,
-            "rate": 0.45
-          }
+          { "threshold": 0, "baseTax": 0, "rate": 0 },
+          { "threshold": 18201, "baseTax": 0, "rate": 0.16 },
+          { "threshold": 45001, "baseTax": 4288, "rate": 0.3 },
+          { "threshold": 135001, "baseTax": 31288, "rate": 0.37 },
+          { "threshold": 190001, "baseTax": 51638, "rate": 0.45 }
         ]
       },
       {
         "year": "2024-25",
         "effectiveFrom": "2024-07-01",
         "taxBrackets": [
-          {
-            "threshold": 0,
-            "baseTax": 0,
-            "rate": 0
-          },
-          {
-            "threshold": 18201,
-            "baseTax": 0,
-            "rate": 0.16
-          },
-          {
-            "threshold": 45001,
-            "baseTax": 4288,
-            "rate": 0.3
-          },
-          {
-            "threshold": 135001,
-            "baseTax": 31288,
-            "rate": 0.37
-          },
-          {
-            "threshold": 190001,
-            "baseTax": 51638,
-            "rate": 0.45
-          }
+          { "threshold": 0, "baseTax": 0, "rate": 0 },
+          { "threshold": 18201, "baseTax": 0, "rate": 0.16 },
+          { "threshold": 45001, "baseTax": 4288, "rate": 0.3 },
+          { "threshold": 135001, "baseTax": 31288, "rate": 0.37 },
+          { "threshold": 190001, "baseTax": 51638, "rate": 0.45 }
         ]
       },
       {
         "year": "2023-24",
         "effectiveFrom": "2023-07-01",
         "taxBrackets": [
-          {
-            "threshold": 0,
-            "baseTax": 0,
-            "rate": 0
-          },
-          {
-            "threshold": 18201,
-            "baseTax": 0,
-            "rate": 0.19
-          },
-          {
-            "threshold": 45001,
-            "baseTax": 5092,
-            "rate": 0.325
-          },
-          {
-            "threshold": 120001,
-            "baseTax": 29467,
-            "rate": 0.37
-          },
-          {
-            "threshold": 180001,
-            "baseTax": 51667,
-            "rate": 0.45
-          }
+          { "threshold": 0, "baseTax": 0, "rate": 0 },
+          { "threshold": 18201, "baseTax": 0, "rate": 0.19 },
+          { "threshold": 45001, "baseTax": 5092, "rate": 0.325 },
+          { "threshold": 120001, "baseTax": 29467, "rate": 0.37 },
+          { "threshold": 180001, "baseTax": 51667, "rate": 0.45 }
         ]
       }
     ],
@@ -143,10 +94,10 @@
   },
   "penalties": {
     "failureToLodge": {
-      "unitValue": 330,
+      "unitValue": 364,
       "maxUnits": 5,
       "frequencyDays": 28,
-      "description": "Failure to Lodge penalties accrue at one $330 penalty unit per 28 days (small entities, capped at 5 units). Medium entities pay double and large entities pay five times the base amount; remission depends on compliance history."
+      "description": "Failure to Lodge penalties accrue at one $364 penalty unit per 28 days (small entities, capped at 5 units). Medium entities pay double and large entities pay five times the base amount; remission depends on compliance history."
     },
     "generalInterestCharge": {
       "description": "General Interest Charge (GIC) accrues daily on outstanding tax debts and is no longer deductible for amounts incurred on or after 1 July 2025."

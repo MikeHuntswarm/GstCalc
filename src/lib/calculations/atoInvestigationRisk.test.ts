@@ -10,7 +10,7 @@ import type { PenaltySchedule } from '../../types/ato';
 
 const penaltySchedule: PenaltySchedule = {
   failureToLodge: {
-    unitValue: 330,
+    unitValue: 364,
     maxUnits: 5,
     frequencyDays: 28,
     description: 'Test FTL schedule',
