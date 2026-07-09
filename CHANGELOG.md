@@ -1,55 +1,113 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. Run `npm run release:prepare` to append new entries automatically.
+All notable changes to GstCalc.
 
--## [0.1.5] - 2025-11-25
-- feat: Refresh ATO datasets with GST 10% confirmation, 2025-26 resident tax brackets, Medicare low-income thresholds, $330 Failure to Lodge penalties, and the latest GIC/Division 7A benchmark rates sourced from [ATO GST guidance](https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/how-gst-works), [resident income tax rates](https://www.ato.gov.au/rates/individual-income-tax-rates/), [Medicare levy reduction pages](https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners) / [family thresholds](https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income), [Failure to lodge penalty guidance](https://www.ato.gov.au/individuals-and-families/paying-the-ato/interest-and-penalties/penalties/failure-to-lodge-on-time-penalty), [GIC rates](https://www.ato.gov.au/Rates/General-interest-charge-%28GIC%29-rates/), and the [Division 7A benchmark interest rate](https://www.ato.gov.au/tax-rates-and-codes/division-7a-benchmark-interest-rate/).
-- fix: Harden AnnualBusinessTax UI to expose deterministic data-testids for each card, summary block, and checklist detail so specs can target unique nodes.
-- test: Tighten AnnualBusinessTax and incomeTax specs and rerun `corepack pnpm vitest run src/components/modules/AnnualBusinessTax.test.tsx src/lib/calculations/incomeTax.test.ts --reporter=dot` to confirm green.
-- feat: Add unit tests for GST calculations and input validation, including error handling for invalid inputs
-- feat: Add comprehensive implementation plan for GSTCalc project with prioritized tasks and expected outcomes
-- feat: Enhance ATO data fetching with multiple loading strategies and improve type definitions for Electron API
-- feat: Implement reminders functionality with notification support
-- fix: Update ATO rates source URLs to point to the correct repository
-- feat: Update ATO rates JSON with Medicare levy and offsets details
-- fix: Handle missing dueDate in reminders
-- feat: Add app update functionality
-- Add Medicare levy, offsets, and small business updates
-- feat: Add comprehensive AI software development guidelines and documentation protocols
-- Fix auto-select of financial year after data load
-- refactor: migrate to Zustand for state management and remove useAtoRates hook
-- feat: Implement BAS lodgement reminder scheduling
-- feat: enhance notification handling with support check and logging
-- feat: add ATO rates fetching functionality and integrate with preload script
-- feat: enhance BusinessTools component with reminder functionality and notifications
-- chore: update package-lock.json with new dev dependencies
-- update src/components/modules/AnnualBusinessTax.tsx
-- 0.1.3 added annual report and changelog
-- feat: add Annual Business Tax estimator component and integrate into App
-- upate
-- chore: update vitest dependency to version 3.2.4
-- BAS  yearly lodgement date tax mitigation straturgy
-- idk
-- idk wtf im doing
-- Fix inclusive income tax thresholds and add tests
-- Respect default GST rate updates when not customised
-- Wire GST rate into business tools
-- Adjust failure to lodge period calculations
-- Fix GST autofill to derive inclusive component
-- Json
-- round 1
-- Initial commit
-## [0.1.4] - 2025-11-25
+## [0.1.17] — 2026-07-09
 
-UI/UX polish, support docs, and installer updates
+### Fixed
 
-- fix: Updater now gracefully handles non-Electron contexts and is fully typed
-- fix: Business tools and reminders show clearer warning/confirmation states
-- docs: add docs/support.md and footer links for support/privacy/legal info
-- chore: regenerate installer with latest code and data
+- Repo URLs updated (`your-username` → `MikeHuntswarm`, `master` → `main`)
+- `electron-updater` config: `private: false` for public repo
+- `sandbox: true` in BrowserWindow for improved security
+- Update script URLs (`tsvillain` → `MikeHuntswarm`)
+- Footer links in app point to correct GitHub pages
+- Dark mode polish on OverviewDashboard (text + background variants)
+- Penalty integration test assertion fixed
 
-## [0.1.3] - 2025-09-25
+### Added
 
-Add Annual Business Tax estimator
+- Stale ATO data notification banner (appears when data >7 days old)
+- ATO investigation risk score card on OverviewDashboard
+- 24 tests for all 9 risk detectors (`atoInvestigationRisk.test.ts`)
+- 21 tests for LodgementHistory store (`lodgement-store.test.ts`)
+- Weekly cron job to refresh ATO rates
 
-- feat: add Annual Business Tax estimator component and integrate into App
+### Changed
+
+- Extracted 200 LOC of inline BAS/income tax import data to `src/data/`
+- Removed duplicate `ReminderCategory` from constants.ts
+
+### Removed
+
+- Unused `jspdf` dependency (44 packages)
+- Stale `.project-state.json` and `PROJECT_PLAN.md` scaffolding
+
+### Dependencies
+
+- Added `@testing-library/dom` (enables 2 component test suites)
+- `npm audit fix` resolved 30 vulnerabilities
+
+## [0.1.16] — 2026-01-19
+
+### Added
+
+- Income tax lodgement import for trust returns 2020–2022
+- Automatic late lodgement tracking
+- ATO investigation risk analysis with 10 detectors
+- BAS history bulk import with debt/refund tracking
+- Penalty tracking and income tax support
+- Enhanced Edit/Delete button visibility
+- Auto-scroll to edit form
+
+### Fixed
+
+- Date strings converted to ISO 8601 format
+- Catch-up planner total calculation
+- Dark mode input text visibility
+- Electron-builder artifact naming for auto-updater
+
+## [0.1.15] — 2025-12-23
+
+### Added
+
+- Comprehensive lodgement history with ATO investigation risk analysis
+- Reminder auto-populate dropdowns
+- Dark mode updater visibility
+- Visual feedback for update checking
+
+## [0.1.5] — 2025-11-19
+
+### Changed
+
+- ATO data refresh: updated tax brackets, Medicare thresholds, penalty unit values
+- Electron-builder publish owner updated
+- Enhanced AnnualBusinessTax tests
+
+## [0.1.4] — 2025-10-27
+
+### Added
+
+- App update functionality
+- Reminders with notification support
+- Medicare levy, offsets, and small business updates
+- Unit tests for GST calculations
+
+### Fixed
+
+- ATO data fetching with multiple loading strategies
+- Missing dueDate handling in reminders
+
+## [0.1.3] — 2025-10-08
+
+### Added
+
+- Annual Business Tax estimator component
+- BAS lodgement reminder scheduling
+- Notification handling with support check
+
+### Changed
+
+- Migrated to Zustand for state management
+- Enhanced BusinessTools with reminder functionality
+
+## [0.1.0] — 2025-09-16
+
+### Added
+
+- Initial release
+- GST Calculator (exclusive/inclusive mode)
+- Income Tax Calculator with bracket display
+- Electron desktop shell with auto-update
+- Business tools with penalty estimator
+- Catch-up planner and overview dashboard
+- Super calculator and franking credits

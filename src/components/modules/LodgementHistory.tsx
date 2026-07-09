@@ -8,6 +8,7 @@ import {
   XCircle,
   Filter,
   AlertTriangle,
+  DownloadIcon,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -250,6 +251,59 @@ export function LodgementHistory() {
     }
   };
 
+  const handleExportCsv = () => {
+    if (records.length === 0) {
+      toast.error('No records to export');
+      return;
+    }
+
+    const headers = [
+      'ID',
+      'Type',
+      'Year',
+      'Quarter',
+      'Status',
+      'Due Date',
+      'Lodgement Date',
+      'Amount',
+      'Late',
+      'Days Late',
+      'Has Penalty',
+      'Penalty Amount',
+      'Notes',
+      'Source',
+    ];
+
+    const rows = records.map((r) => [
+      r.id,
+      r.type,
+      r.year.toString(),
+      r.quarter || '',
+      r.status,
+      r.dueDate,
+      r.lodgementDate || '',
+      r.amount.toFixed(2),
+      r.isLate ? 'Yes' : 'No',
+      r.daysLate?.toString() || '0',
+      r.hasPenalty ? 'Yes' : 'No',
+      r.penaltyAmount?.toFixed(2) || '0.00',
+      `"${(r.notes || '').replace(/"/g, '""')}"`,
+      r.source || 'manual',
+    ]);
+
+    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `gstcalc-lodgements-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`${records.length} records exported as CSV`);
+  };
+
   const handleBulkImport = () => {
     if (
       !confirm(
@@ -372,6 +426,10 @@ export function LodgementHistory() {
               <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
                 <Filter className="mr-2 h-4 w-4" />
                 Filters
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportCsv}>
+                <DownloadIcon className="mr-2 h-4 w-4" />
+                Export CSV
               </Button>
               {records.length === 0 && (
                 <>

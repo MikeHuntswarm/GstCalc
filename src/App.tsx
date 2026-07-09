@@ -24,7 +24,7 @@ import { useThemeStore } from '@/store/theme';
 import { formatPercent } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
-const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.6';
+const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.17';
 
 function LoadingState({ message }: { message: string }) {
   return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
@@ -52,6 +52,33 @@ export default function App() {
   useEffect(() => {
     logger.info('GSTCalc application started', { version: APP_VERSION, theme });
   }, [theme]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Shift+R: Refresh ATO rates
+      if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+        e.preventDefault();
+        refresh();
+        toast.success('Refreshing ATO rates...');
+      }
+      // Ctrl+,: Open Settings
+      if (e.ctrlKey && e.key === ',') {
+        e.preventDefault();
+        const el = document.querySelector('[data-value="settings"]');
+        if (el instanceof HTMLElement) el.click();
+      }
+      // Ctrl+1-9: Jump to tab
+      if (e.ctrlKey && e.key >= '1' && e.key <= '9') {
+        e.preventDefault();
+        const tabs = document.querySelectorAll('[role="tab"]');
+        const idx = parseInt(e.key) - 1;
+        if (tabs[idx] instanceof HTMLElement) tabs[idx].click();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [refresh]);
 
   const gstRate = data?.gst.standardRate ?? 0.1;
   const gstNotes = data?.gst.notes;
