@@ -44,7 +44,9 @@ export function OverviewDashboard() {
         <CardContent className="space-y-3">
           <div className="flex items-baseline gap-2">
             <p className="text-sm text-slate-600">Standard GST rate</p>
-            <p className="text-2xl font-semibold text-slate-900">{formatPercent(gstRate)}</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+              {formatPercent(gstRate)}
+            </p>
           </div>
           <p className="text-xs text-slate-500">
             Last updated{' '}
@@ -86,12 +88,14 @@ export function OverviewDashboard() {
               {upcomingReminders.slice(0, 3).map((reminder) => (
                 <div
                   key={reminder.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-muted bg-white px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-muted bg-white px-3 py-2 dark:bg-slate-800"
                 >
                   <div>
                     <div className="flex items-center gap-2">
                       <Badge>{reminder.category}</Badge>
-                      <span className="text-sm font-medium text-slate-900">{reminder.label}</span>
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        {reminder.label}
+                      </span>
                     </div>
                     <p className="text-xs text-slate-600">Due {reminder.dueDate}</p>
                   </div>
@@ -129,17 +133,17 @@ export function OverviewDashboard() {
               see full details in the Business tools tab.
             </Alert>
           ) : (
-            <div className="space-y-3 text-sm text-slate-700">
+            <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
                 <p className="text-xs uppercase text-primary">Base rate entity</p>
-                <p className="mt-1 text-xl font-semibold text-slate-900">
+                <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
                   {formatPercent(baseRate.rate)}
                 </p>
                 <p className="mt-1 text-xs text-slate-700">{baseRate.criteria}</p>
               </div>
-              <div className="rounded-lg border border-muted bg-white p-3">
+              <div className="rounded-lg border border-muted bg-white p-3 dark:bg-slate-800">
                 <p className="text-xs uppercase text-slate-500">Full company rate</p>
-                <p className="mt-1 text-xl font-semibold text-slate-900">
+                <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
                   {formatPercent(fullRate.rate)}
                 </p>
                 <p className="mt-1 text-xs text-slate-700">{fullRate.criteria}</p>

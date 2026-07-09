@@ -198,7 +198,7 @@ describe('Risk Assessment - Penalty Detection', () => {
 
 describe('Risk Assessment - Integration with Existing Detectors', () => {
   it('should combine penalty risk with late lodgement risk', () => {
-    // Record that is both late AND penalized
+    // Multiple records that are late AND some penalized to trigger combined risk
     const records: LodgementRecord[] = [
       {
         id: 'test-1',
@@ -214,12 +214,52 @@ describe('Risk Assessment - Integration with Existing Detectors', () => {
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
       },
+      {
+        id: 'test-2',
+        type: 'gst-bas',
+        year: 2024,
+        quarter: 'Q2',
+        status: 'lodged',
+        dueDate: '2025-02-28T00:00:00Z',
+        lodgementDate: '2025-04-15T00:00:00Z', // 46 days late
+        amount: 1200,
+        hasPenalty: true,
+        penaltyAmount: 600,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+      {
+        id: 'test-3',
+        type: 'gst-bas',
+        year: 2024,
+        quarter: 'Q3',
+        status: 'lodged',
+        dueDate: '2025-05-26T00:00:00Z',
+        lodgementDate: '2025-07-10T00:00:00Z', // 45 days late
+        amount: 800,
+        hasPenalty: true,
+        penaltyAmount: 400,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+      {
+        id: 'test-4',
+        type: 'gst-bas',
+        year: 2024,
+        quarter: 'Q4',
+        status: 'lodged',
+        dueDate: '2025-08-25T00:00:00Z',
+        lodgementDate: '2025-10-01T00:00:00Z', // 37 days late
+        amount: 900,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
     ];
 
     const risk = assessInvestigationRisk(records);
 
-    // Should have multiple risk flags
+    // 3+ penalized records = critical penalty flag, 3 consecutive late = high
     expect(risk.flags.length).toBeGreaterThanOrEqual(1);
-    expect(risk.riskScore).toBeGreaterThan(20); // Combined risk
+    expect(risk.riskScore).toBeGreaterThan(20); // Combined risk from penalties + consecutive late
   });
 });
