@@ -22,9 +22,7 @@ import { useAtoStore } from '@/store/ato';
 import { useRemindersStore } from '@/store/reminders';
 
 export function BusinessTools() {
-  const {
-    data: atoData,
-  } = useAtoStore();
+  const { data: atoData } = useAtoStore();
   const baseRate = atoData?.company.baseRateEntity;
   const fullRate = atoData?.company.fullRate;
   const penalties = atoData?.penalties;
@@ -33,7 +31,7 @@ export function BusinessTools() {
   const taxPlanning = atoData?.taxPlanning;
   const smallBusiness = atoData?.smallBusiness;
   const interestRates = atoData?.interestRates;
-  
+
   const { reminders, addReminder, removeReminder } = useRemindersStore();
 
   const [sales, setSales] = useState('');
@@ -98,8 +96,8 @@ export function BusinessTools() {
 
   const toggleReminder = (quarter: { label: string; standardDueDate: string }) => {
     // Check if reminder exists by finding a matching label
-    const existingReminder = reminders.find(r => r.label === quarter.label);
-    
+    const existingReminder = reminders.find((r) => r.label === quarter.label);
+
     if (existingReminder) {
       // Remove the reminder
       removeReminder(existingReminder.id);
@@ -111,7 +109,7 @@ export function BusinessTools() {
         category: 'bas',
         notifyDaysBefore: [7, 3, 1],
       });
-      
+
       sendNotification(
         'BAS Reminder Set',
         `You will be reminded about the ${quarter.label} lodgement.`,
@@ -122,8 +120,8 @@ export function BusinessTools() {
   if (!baseRate || !fullRate || !penalties) {
     return (
       <Alert variant="warning">
-        Company tax and penalty data is unavailable. Try refreshing ATO rates and check your
-        network connection before using the business tools.
+        Company tax and penalty data is unavailable. Try refreshing ATO rates and check your network
+        connection before using the business tools.
       </Alert>
     );
   }
@@ -457,7 +455,9 @@ export function BusinessTools() {
           <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs uppercase text-slate-500">General Interest Charge</p>
-              <p className="text-sm text-slate-700">{interestRates.generalInterestCharge.description}</p>
+              <p className="text-sm text-slate-700">
+                {interestRates.generalInterestCharge.description}
+              </p>
               <ul className="space-y-2 text-xs text-slate-600">
                 {gicRates.map((period) => (
                   <li
@@ -553,12 +553,16 @@ export function BusinessTools() {
                         )}
                         <Button
                           size="sm"
-                          variant={reminders.some((r) => r.label === quarter.label) ? 'default' : 'outline'}
+                          variant={
+                            reminders.some((r) => r.label === quarter.label) ? 'default' : 'outline'
+                          }
                           onClick={() => toggleReminder(quarter)}
                           className="gap-2"
                         >
                           <BellIcon className="h-4 w-4" />
-                          {reminders.some((r) => r.label === quarter.label) ? 'Reminder set' : 'Remind me'}
+                          {reminders.some((r) => r.label === quarter.label)
+                            ? 'Reminder set'
+                            : 'Remind me'}
                         </Button>
                       </div>
                     </div>
@@ -619,11 +623,15 @@ export function BusinessTools() {
               {strategies.map((strategy) => (
                 <div
                   key={strategy.title}
-                  className="space-y-3 rounded-lg border border-emerald-200 bg-white p-4 shadow-sm"
+                  className="space-y-3 rounded-lg border border-emerald-200 bg-white p-4 shadow-sm dark:border-emerald-800 dark:bg-slate-800"
                 >
                   <div>
-                    <h4 className="text-sm font-semibold text-emerald-900">{strategy.title}</h4>
-                    <p className="mt-1 text-xs text-emerald-800">{strategy.summary}</p>
+                    <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+                      {strategy.title}
+                    </h4>
+                    <p className="mt-1 text-xs text-emerald-800 dark:text-emerald-300">
+                      {strategy.summary}
+                    </p>
                   </div>
                   <ul className="space-y-2 text-xs text-slate-600">
                     {strategy.actions.map((action) => (

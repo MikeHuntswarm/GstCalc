@@ -10,7 +10,6 @@ contextBridge.exposeInMainWorld('gstcalc', {
   sendNotification: (title: string, body: string) => {
     ipcRenderer.send('show-notification', title, body);
   },
-  getAtoRates: (url: string) => ipcRenderer.invoke('get-ato-rates', url),
   updater: {
     onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
       const handler = (event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info);

@@ -13,53 +13,133 @@
         "year": "2026-27",
         "effectiveFrom": "2026-07-01",
         "taxBrackets": [
-          { "threshold": 0, "baseTax": 0, "rate": 0 },
-          { "threshold": 18201, "baseTax": 0, "rate": 0.15 },
-          { "threshold": 45001, "baseTax": 4020, "rate": 0.3 },
-          { "threshold": 135001, "baseTax": 31020, "rate": 0.37 },
-          { "threshold": 190001, "baseTax": 51370, "rate": 0.45 }
+          {
+            "threshold": 0,
+            "baseTax": 0,
+            "rate": 0
+          },
+          {
+            "threshold": 18201,
+            "baseTax": 0,
+            "rate": 0.15
+          },
+          {
+            "threshold": 45001,
+            "baseTax": 4020,
+            "rate": 0.3
+          },
+          {
+            "threshold": 135001,
+            "baseTax": 31020,
+            "rate": 0.37
+          },
+          {
+            "threshold": 190001,
+            "baseTax": 51370,
+            "rate": 0.45
+          }
         ]
       },
       {
         "year": "2025-26",
         "effectiveFrom": "2025-07-01",
         "taxBrackets": [
-          { "threshold": 0, "baseTax": 0, "rate": 0 },
-          { "threshold": 18201, "baseTax": 0, "rate": 0.16 },
-          { "threshold": 45001, "baseTax": 4288, "rate": 0.3 },
-          { "threshold": 135001, "baseTax": 31288, "rate": 0.37 },
-          { "threshold": 190001, "baseTax": 51638, "rate": 0.45 }
+          {
+            "threshold": 0,
+            "baseTax": 0,
+            "rate": 0
+          },
+          {
+            "threshold": 18201,
+            "baseTax": 0,
+            "rate": 0.16
+          },
+          {
+            "threshold": 45001,
+            "baseTax": 4288,
+            "rate": 0.3
+          },
+          {
+            "threshold": 135001,
+            "baseTax": 31288,
+            "rate": 0.37
+          },
+          {
+            "threshold": 190001,
+            "baseTax": 51638,
+            "rate": 0.45
+          }
         ]
       },
       {
         "year": "2024-25",
         "effectiveFrom": "2024-07-01",
         "taxBrackets": [
-          { "threshold": 0, "baseTax": 0, "rate": 0 },
-          { "threshold": 18201, "baseTax": 0, "rate": 0.16 },
-          { "threshold": 45001, "baseTax": 4288, "rate": 0.3 },
-          { "threshold": 135001, "baseTax": 31288, "rate": 0.37 },
-          { "threshold": 190001, "baseTax": 51638, "rate": 0.45 }
+          {
+            "threshold": 0,
+            "baseTax": 0,
+            "rate": 0
+          },
+          {
+            "threshold": 18201,
+            "baseTax": 0,
+            "rate": 0.16
+          },
+          {
+            "threshold": 45001,
+            "baseTax": 4288,
+            "rate": 0.3
+          },
+          {
+            "threshold": 135001,
+            "baseTax": 31288,
+            "rate": 0.37
+          },
+          {
+            "threshold": 190001,
+            "baseTax": 51638,
+            "rate": 0.45
+          }
         ]
       },
       {
         "year": "2023-24",
         "effectiveFrom": "2023-07-01",
         "taxBrackets": [
-          { "threshold": 0, "baseTax": 0, "rate": 0 },
-          { "threshold": 18201, "baseTax": 0, "rate": 0.19 },
-          { "threshold": 45001, "baseTax": 5092, "rate": 0.325 },
-          { "threshold": 120001, "baseTax": 29467, "rate": 0.37 },
-          { "threshold": 180001, "baseTax": 51667, "rate": 0.45 }
+          {
+            "threshold": 0,
+            "baseTax": 0,
+            "rate": 0
+          },
+          {
+            "threshold": 18201,
+            "baseTax": 0,
+            "rate": 0.19
+          },
+          {
+            "threshold": 45001,
+            "baseTax": 5092,
+            "rate": 0.325
+          },
+          {
+            "threshold": 120001,
+            "baseTax": 29467,
+            "rate": 0.37
+          },
+          {
+            "threshold": 180001,
+            "baseTax": 51667,
+            "rate": 0.45
+          }
         ]
       }
     ],
     "medicare": {
       "levyRate": 0.02,
-      "lowIncomeThreshold": 27222,
+      "lowIncomeThreshold": 28011,
       "taperRate": 0.1,
-      "familyThreshold": 45907,
-      "notes": "Singles pay no levy below $27,222 (SAPTO $43,020). Families pay no levy below $45,907 (SAPTO $59,886) with an extra $4,216 per dependent child; thresholds taper in at 10% until the full 2% levy applies."
+      "familyThreshold": 47253,
+      "notes": "Singles pay no levy below $28,011 (SAPTO $44,190). Families pay no levy below $47,253 (SAPTO $61,517) with an extra $4,335 per dependent child; thresholds taper in at 10% until the full 2% levy applies."
     },
     "offsets": [
       {
@@ -106,9 +186,9 @@
   "smallBusiness": {
     "instantAssetWriteOff": {
       "threshold": 20000,
-      "effectivePeriod": "1 July 2023 to 30 June 2025",
+      "effectivePeriod": "1 July 2025 to 30 June 2026",
       "eligibility": "Aggregated turnover under $10 million and assets first used or installed ready for use within the eligible window.",
-      "notes": "Assets costing more than the threshold must be placed into the small business pool."
+      "notes": "Assets costing more than the threshold must be placed into the small business pool. Government has proposed making the $20,000 write-off permanent from 1 July 2026 (not yet law)."
     },
     "simplifiedDepreciation": {
       "threshold": 10000000,
@@ -123,6 +203,30 @@
     "generalInterestCharge": {
       "description": "General Interest Charge is applied using daily compounding interest. Rates change each quarter based on the 90-day bank bill rate plus a 7 percentage point uplift.",
       "quarterlyRates": [
+        {
+          "label": "July - September 2026",
+          "rate": 0.1143,
+          "effectiveFrom": "2026-07-01",
+          "effectiveTo": "2026-09-30"
+        },
+        {
+          "label": "April - June 2026",
+          "rate": 0.1096,
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": "2026-06-30"
+        },
+        {
+          "label": "January - March 2026",
+          "rate": 0.1065,
+          "effectiveFrom": "2026-01-01",
+          "effectiveTo": "2026-03-31"
+        },
+        {
+          "label": "October - December 2025",
+          "rate": 0.1061,
+          "effectiveFrom": "2025-10-01",
+          "effectiveTo": "2025-12-31"
+        },
         {
           "label": "July - September 2025",
           "rate": 0.1078,
@@ -173,5 +277,65 @@
         }
       ]
     }
+  },
+  "taxPlanning": {
+    "disclaimer": "These strategies are general information, not financial advice. Verify eligibility with the ATO or a registered tax agent.",
+    "strategies": [
+      {
+        "title": "Salary sacrifice into super",
+        "summary": "Redirect pre-tax income into super to pay 15% contributions tax instead of your marginal rate.",
+        "actions": [
+          "Check your concessional cap for the year",
+          "Set up salary sacrifice with payroll",
+          "Verify you are not over the Division 293 threshold of $250,000"
+        ],
+        "caution": "Exceeding the concessional cap attracts excess contributions tax."
+      },
+      {
+        "title": "Claim all work-related deductions",
+        "summary": "Commonly missed: home office, vehicle, tools, protective clothing, self-education, and union fees.",
+        "actions": [
+          "Keep receipts and a diary for 12 weeks of work travel",
+          "Claim the home office shortcut rate if eligible",
+          "Use the myDeductions app to log expenses year-round"
+        ],
+        "caution": "Deductions must be directly related to earning your income."
+      },
+      {
+        "title": "Instant asset write-off (small business)",
+        "summary": "Deduct eligible assets costing under $20,000 immediately (extended to 30 June 2026).",
+        "actions": [
+          "Confirm aggregated turnover under $10M",
+          "Identify assets under $20,000 first used this year",
+          "Place larger assets into the simplified depreciation pool"
+        ],
+        "caution": "Measure not yet law for post-30 June 2026 purchases."
+      },
+      {
+        "title": "Claim the Low Income Tax Offset (LITO)",
+        "summary": "Taxpayers with taxable income under $66,667 may be entitled to up to $700 off their tax.",
+        "actions": [
+          "Check eligibility via your tax return",
+          "Lodging your return automatically claims it"
+        ],
+        "caution": "Phases out between $37,500 and $66,667."
+      },
+      {
+        "title": "Negative gearing on investments",
+        "summary": "Investment loan interest and costs can offset rental or business income.",
+        "actions": [
+          "Track interest, insurance, rates, and maintenance",
+          "Claim capital works deductions where eligible",
+          "Keep records for 5 years after selling"
+        ],
+        "caution": "Seek advice - capital gains tax applies on sale."
+      },
+      {
+        "title": "Donate to registered charities",
+        "summary": "Deductible Gift Recipients (DGR) donations over $2 are tax deductible.",
+        "actions": ["Keep receipts for all donations", "Confirm the charity holds DGR status"],
+        "caution": "Donations must be to endorsed DGRs, not crowdfunding appeals."
+      }
+    ]
   }
 }

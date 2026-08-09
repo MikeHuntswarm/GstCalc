@@ -57,7 +57,7 @@ export const FINANCIAL_YEAR_START_MONTH = 6; // July (0-indexed)
 export const FINANCIAL_YEAR_START_DAY = 1;
 
 // Tax thresholds (these are examples - actual values should come from ATO data)
-export const SUPER_GUARANTEE_RATE = 0.115; // 11.5% as of July 2024
+export const SUPER_GUARANTEE_RATE = 0.12; // 12% as of 1 July 2025
 export const COMPANY_TAX_FULL_RATE = 0.3; // 30%
 export const COMPANY_TAX_BASE_RATE = 0.25; // 25%
 

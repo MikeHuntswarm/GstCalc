@@ -33,7 +33,7 @@ const mockAtoData: AtoData = {
   },
   penalties: {
     failureToLodge: {
-      unitValue: 313,
+      unitValue: 364,
       maxUnits: 5,
       frequencyDays: 28,
       description: 'Test failure to lodge schedule',

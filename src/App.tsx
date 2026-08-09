@@ -24,7 +24,7 @@ import { useThemeStore } from '@/store/theme';
 import { formatPercent } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
-const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.18';
+const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.19';
 
 function LoadingState({ message }: { message: string }) {
   return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
@@ -169,8 +169,8 @@ export default function App() {
                     <Alert variant="destructive">
                       ATO rate data is {daysSinceUpdate} days old. Tax brackets, penalty units, and
                       interest rates may have changed since{' '}
-                      {new Date(lastUpdated).toLocaleDateString('en-AU')}. Open the Settings tab to
-                      refresh rates, or click the Refresh rates button above.
+                      {new Date(lastUpdated).toLocaleDateString('en-AU')}. Click the Refresh rates
+                      button above to pull the latest data.
                     </Alert>
                   );
                 }

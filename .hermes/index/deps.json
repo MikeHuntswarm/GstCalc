@@ -1,0 +1,26 @@
+{
+  "project": "gstcalc",
+  "version": "0.1.18",
+  "node": "v24.15.0",
+  "platform": "win32",
+  "timestamp": "2026-07-09T18:51:24.768Z",
+  "model": "deepseek/deepseek-v4-flash",
+  "provider": "nous",
+  "dependencies": {
+    "electron": "^38.8.6",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5",
+    "vitest": "^3.2.4",
+    "zustand": "^5.0.8",
+    "zod": "^4.2.1",
+    "tailwindcss": "^3.4.17",
+    "@vitejs/plugin-react": "^5.0.2",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.35.0",
+    "prettier": "^3.6.2",
+    "lucide-react": "^0.544.0",
+    "date-fns": "^4.1.0"
+  }
+}

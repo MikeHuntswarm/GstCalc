@@ -26,11 +26,6 @@ declare global {
       sendNotification: (title: string, body: string) => void;
 
       /**
-       * Fetch ATO rates data from a URL
-       */
-      getAtoRates: (url: string) => Promise<AtoData>;
-
-      /**
        * Auto-updater event handlers
        */
       updater: {

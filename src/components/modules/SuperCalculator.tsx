@@ -28,8 +28,10 @@ export function SuperCalculator() {
   const [marginalTaxRate, setMarginalTaxRate] = useState('');
 
   const currentYear = new Date().getFullYear();
-  const CONCESSIONAL_CAP = 30000; // 2024-25 cap
-  const NON_CONCESSIONAL_CAP = 120000; // 2024-25 cap
+  // Contribution caps indexed by ATO each year: 2025-26 = $30,000 / $120,000, 2026-27 = $32,500 / $130,000
+  const fyStartYear = currentYear <= 6 ? currentYear - 1 : currentYear; // financial year starting year
+  const CONCESSIONAL_CAP = fyStartYear >= 2026 ? 32500 : 30000;
+  const NON_CONCESSIONAL_CAP = fyStartYear >= 2026 ? 130000 : 120000;
 
   const calculateSuper = (): SuperResult | null => {
     const annualSalary = parseFloat(salary);
@@ -41,7 +43,7 @@ export function SuperCalculator() {
       return null;
     }
 
-    // Super Guarantee (11.5% as of July 2024)
+    // Super Guarantee (12% as of 1 July 2025)
     const superGuarantee = annualSalary * SUPER_GUARANTEE_RATE;
 
     // Total concessional contributions

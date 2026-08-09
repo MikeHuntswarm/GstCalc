@@ -13,37 +13,14 @@ interface AtoState {
 }
 
 // Use relative paths to improve compatibility in different contexts
-// - './data/ato-rates.json' works better in dev server
-// - './public/data/ato-rates.json' is a fallback for Electron
+// - './data/ato-rates.json' works in both dev (vite serves public/) and production (dist/data/)
 const LOCAL_API_URL = './data/ato-rates.json';
-const ELECTRON_API_URL = './public/data/ato-rates.json';
 const CACHE_KEY = STORAGE_KEYS.ATO_RATES;
 
 async function fetchData(): Promise<AtoData> {
-  // Try multiple approaches to load the data, in order of preference
   const errors: Error[] = [];
 
-  // 1. First try using Electron's IPC if available (production app)
-  if (window.gstcalc?.getAtoRates) {
-    try {
-      console.log('Trying to load ATO rates via Electron IPC');
-      const rawData = await window.gstcalc.getAtoRates(ELECTRON_API_URL);
-
-      // Validate the data against schema
-      const data = AtoDataSchema.parse(rawData);
-
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data }));
-      console.log('Successfully loaded ATO rates via Electron IPC');
-      return data;
-    } catch (electronError) {
-      console.warn('Failed to load via Electron IPC, will try fetch API', electronError);
-      errors.push(
-        electronError instanceof Error ? electronError : new Error('Unknown Electron error'),
-      );
-    }
-  }
-
-  // 2. Try using the fetch API (works in browser and dev mode)
+  // Try loading via fetch (works in browser and Electron renderer)
   try {
     console.log('Trying to load ATO rates via fetch API from', LOCAL_API_URL);
     const response = await fetch(LOCAL_API_URL);

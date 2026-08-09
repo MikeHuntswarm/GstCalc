@@ -4,7 +4,7 @@ import type { PenaltySchedule } from '@/types/ato';
 
 // Sample penalty schedule for testing
 const testSchedule: PenaltySchedule['failureToLodge'] = {
-  unitValue: 313,
+  unitValue: 364,
   maxUnits: 5,
   frequencyDays: 28,
   description: 'Test penalty schedule',
@@ -39,7 +39,7 @@ describe('estimateFailureToLodgePenalty', () => {
     expect(result).toEqual({
       daysLate: 28,
       penaltyUnits: 1,
-      amount: 313,
+      amount: 364,
       periodsLate: 1,
     });
   });
@@ -50,7 +50,7 @@ describe('estimateFailureToLodgePenalty', () => {
     expect(result).toEqual({
       daysLate: 1,
       penaltyUnits: 1,
-      amount: 313,
+      amount: 364,
       periodsLate: 1,
     });
   });
@@ -61,7 +61,7 @@ describe('estimateFailureToLodgePenalty', () => {
     expect(result).toEqual({
       daysLate: 56,
       penaltyUnits: 2,
-      amount: 626,
+      amount: 728,
       periodsLate: 2,
     });
   });
@@ -72,7 +72,7 @@ describe('estimateFailureToLodgePenalty', () => {
     expect(result).toEqual({
       daysLate: 140,
       penaltyUnits: 5,
-      amount: 1565,
+      amount: 1820,
       periodsLate: 5,
     });
   });
@@ -83,7 +83,7 @@ describe('estimateFailureToLodgePenalty', () => {
     expect(result).toEqual({
       daysLate: 200,
       penaltyUnits: 5,
-      amount: 1565,
+      amount: 1820,
       periodsLate: 8, // 200 / 28 = 7.14, ceil to 8, but capped at 5 units
     });
   });
@@ -94,7 +94,7 @@ describe('estimateFailureToLodgePenalty', () => {
     expect(result).toEqual({
       daysLate: 28,
       penaltyUnits: 1,
-      amount: 313,
+      amount: 364,
       periodsLate: 1,
     });
   });
@@ -105,7 +105,7 @@ describe('estimateFailureToLodgePenalty', () => {
     expect(result).toEqual({
       daysLate: 1000,
       penaltyUnits: 5,
-      amount: 1565,
+      amount: 1820,
       periodsLate: 36, // ceil(1000/28) = 36, but capped at 5 units
     });
   });
@@ -115,7 +115,7 @@ describe('describePenaltyCap', () => {
   it('describes penalty cap correctly', () => {
     const description = describePenaltyCap(testSchedule);
 
-    expect(description).toBe('Capped at 5 penalty units ($1,565.00) for small entities.');
+    expect(description).toBe('Capped at 5 penalty units ($1,820.00) for small entities.');
   });
 
   it('handles different penalty schedules', () => {
@@ -125,7 +125,6 @@ describe('describePenaltyCap', () => {
       frequencyDays: 30,
       description: 'Custom penalty schedule',
     };
-
     const description = describePenaltyCap(customSchedule);
 
     expect(description).toBe('Capped at 3 penalty units ($1,500.00) for small entities.');

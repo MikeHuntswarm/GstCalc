@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, Notification, net } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, Notification } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -39,8 +39,33 @@ async function createMainWindow() {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    // Only open http/https links externally; deny everything else (file:, javascript:, etc.)
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        shell.openExternal(url);
+      }
+    } catch {
+      // Invalid URL - deny
+    }
     return { action: 'deny' };
+  });
+
+  // Prevent the window from navigating away from the app
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const currentUrl = mainWindow.webContents.getURL();
+    const devUrl = process.env.VITE_DEV_SERVER_URL;
+    if (url !== currentUrl && url !== devUrl) {
+      event.preventDefault();
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          shell.openExternal(url);
+        }
+      } catch {
+        // Invalid URL - just prevent navigation
+      }
+    }
   });
 
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -134,27 +159,6 @@ app.whenReady().then(async () => {
     autoUpdater.checkForUpdates().catch((error: unknown) => {
       console.error('Failed to check for updates', error);
     });
-  });
-
-  ipcMain.handle('get-ato-rates', async (event, url) => {
-    try {
-      // Security: Whitelist allowed domains
-      const ALLOWED_DOMAINS = ['raw.githubusercontent.com', 'github.com', 'api.github.com'];
-
-      const parsedUrl = new URL(url);
-      if (!ALLOWED_DOMAINS.includes(parsedUrl.hostname)) {
-        throw new Error(`Unauthorized domain: ${parsedUrl.hostname}`);
-      }
-
-      const response = await net.fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to fetch ATO rates:', error);
-      throw error;
-    }
   });
 
   app.on('activate', async () => {
