@@ -12,24 +12,45 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useLodgementHistoryStore } from '@/store/lodgementHistory';
 import { useAtoStore } from '@/store/ato';
 import { assessInvestigationRisk } from '@/lib/calculations/atoInvestigationRisk';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-import type { LodgementRecord } from '@/types/lodgement';
+import type { LodgementRecord, LodgementFilters } from '@/types/lodgement';
 import { InvestigationRiskPanel } from './InvestigationRiskPanel';
 import { BAS_HISTORY_IMPORT, INCOME_TAX_IMPORT } from '@/data/bas-history-import';
 import { dueDateFor } from '@/lib/calculations/dueDates';
+import { downloadCsv } from '@/lib/lodgementExport';
+import { importRecords } from '@/lib/lodgementImport';
+import { LodgementForm, type LodgementFormState } from './lodgement/LodgementForm';
+import { LodgementFilters as FiltersPanel } from './lodgement/LodgementFilters';
 
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const;
 
+const EMPTY_FORM: LodgementFormState = {
+  type: 'gst-bas',
+  quarter: 'Q1',
+  year: new Date().getFullYear(),
+  status: 'lodged',
+  dueDate: '',
+  lodgementDate: '',
+  amount: '',
+  notes: '',
+  hasPenalty: false,
+  penaltyAmount: '',
+};
+
 export function LodgementHistory() {
-  const { records, addLodgement, updateLodgement, removeLodgement, getSummary } =
-    useLodgementHistoryStore();
+  const {
+    records,
+    addLodgement,
+    updateLodgement,
+    removeLodgement,
+    getSummary,
+    getFilteredLodgements,
+  } = useLodgementHistoryStore();
   const { data: atoData } = useAtoStore();
 
   const [showForm, setShowForm] = useState(false);
@@ -40,137 +61,62 @@ export function LodgementHistory() {
   useEffect(() => {
     const hasIncomeTax = records.some((r) => r.type === 'income-tax');
     if (!hasIncomeTax && INCOME_TAX_IMPORT.length > 0) {
-      INCOME_TAX_IMPORT.forEach((record) => {
-        try {
-          const recordWithIso = {
-            ...record,
-            dueDate: new Date(record.dueDate + 'T00:00:00').toISOString(),
-            lodgementDate: new Date(record.lodgementDate + 'T00:00:00').toISOString(),
-            source: 'manual' as const,
-          };
-          addLodgement(recordWithIso);
-        } catch (error) {
-          console.error('Failed to auto-import income tax record:', error);
-        }
-      });
+      importRecords(INCOME_TAX_IMPORT, addLodgement);
     }
-  }, []); // Empty deps array = run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Form state
-  const [formType, setFormType] = useState<'gst-bas' | 'company-tax' | 'income-tax'>('gst-bas');
-  const [formQuarter, setFormQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>('Q1');
-  const [formYear, setFormYear] = useState(new Date().getFullYear());
-  const [formStatus, setFormStatus] = useState<'lodged' | 'not-lodged'>('lodged');
-  const [formDueDate, setFormDueDate] = useState('');
-  const [formLodgementDate, setFormLodgementDate] = useState('');
-  const [formAmount, setFormAmount] = useState('');
-  const [formNotes, setFormNotes] = useState('');
-  const [formHasPenalty, setFormHasPenalty] = useState(false);
-  const [formPenaltyAmount, setFormPenaltyAmount] = useState('');
+  const [form, setForm] = useState<LodgementFormState>(EMPTY_FORM);
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
-  const [filterType, setFilterType] = useState<'gst-bas' | 'company-tax' | 'income-tax' | ''>('');
-  const [filterYear, setFilterYear] = useState<number | ''>('');
-  const [filterStatus, setFilterStatus] = useState<'lodged' | 'not-lodged' | ''>('');
-  const [filterQuarter, setFilterQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4' | ''>('');
-  const [filterHasPenalty, setFilterHasPenalty] = useState<boolean | ''>('');
+  const [filters, setFilters] = useState<LodgementFilters>({});
 
-  const filteredRecords = useMemo(() => {
-    let filtered = [...records];
+  const filteredRecords = useMemo(
+    () => getFilteredLodgements(filters),
+    [getFilteredLodgements, filters],
+  );
 
-    if (filterType) {
-      filtered = filtered.filter((r) => r.type === filterType);
-    }
+  const summary = useMemo(
+    () => getSummary(Object.keys(filters).length > 0 ? filters : undefined),
+    [getSummary, filters],
+  );
 
-    if (filterYear) {
-      filtered = filtered.filter((r) => r.year === filterYear);
-    }
+  const riskAssessment = useMemo(
+    () => assessInvestigationRisk(records, atoData?.penalties),
+    [records, atoData],
+  );
 
-    if (filterStatus) {
-      filtered = filtered.filter((r) => r.status === filterStatus);
-    }
-
-    if (filterQuarter && filterType === 'gst-bas') {
-      filtered = filtered.filter((r) => r.quarter === filterQuarter);
-    }
-
-    if (filterHasPenalty !== '') {
-      filtered = filtered.filter((r) => r.hasPenalty === filterHasPenalty);
-    }
-
-    return filtered.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-  }, [records, filterType, filterYear, filterStatus, filterQuarter, filterHasPenalty]);
-
-  const summary = useMemo(() => {
-    const filters: Partial<
-      Record<keyof import('@/types/lodgement').LodgementFilters, string | number | boolean>
-    > = {};
-    if (filterType) filters.type = filterType;
-    if (filterYear) filters.year = filterYear;
-    if (filterStatus) filters.status = filterStatus;
-    if (filterQuarter) filters.quarter = filterQuarter;
-    if (filterHasPenalty !== '') filters.hasPenalty = filterHasPenalty;
-
-    return getSummary(
-      Object.keys(filters).length > 0
-        ? (filters as import('@/types/lodgement').LodgementFilters)
-        : undefined,
-    );
-  }, [getSummary, filterType, filterYear, filterStatus, filterQuarter, filterHasPenalty]);
-
-  const riskAssessment = useMemo(() => {
-    return assessInvestigationRisk(records, atoData?.penalties);
-  }, [records, atoData]);
-
-  // Auto-populate due date when type, quarter, or year changes (only for new records, not when editing)
+  // Auto-populate due date when type, quarter, or year changes (only for new records)
   useEffect(() => {
     if (!editingId) {
-      const dueDate = calculateDueDate(formType, formQuarter, formYear);
-      setFormDueDate(dueDate);
+      setForm((f) => ({ ...f, dueDate: dueDateFor(form.type, form.quarter, form.year) }));
     }
-  }, [formType, formQuarter, formYear, editingId]);
-
-  const calculateDueDate = (
-    type: 'gst-bas' | 'company-tax' | 'income-tax',
-    quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4',
-    year: number,
-  ): string => {
-    return dueDateFor(type, quarter, year);
-  };
+  }, [form.type, form.quarter, form.year, editingId]);
 
   const resetForm = () => {
-    setFormType('gst-bas');
-    setFormQuarter('Q1');
-    setFormYear(new Date().getFullYear());
-    setFormStatus('lodged');
-    setFormDueDate('');
-    setFormLodgementDate('');
-    setFormAmount('');
-    setFormNotes('');
-    setFormHasPenalty(false);
-    setFormPenaltyAmount('');
+    setForm(EMPTY_FORM);
     setEditingId(null);
     setShowForm(false);
   };
 
   const loadEditForm = (record: LodgementRecord) => {
     setEditingId(record.id);
-    setFormType(record.type);
-    if (record.quarter) {
-      setFormQuarter(record.quarter);
-    }
-    setFormYear(record.year);
-    setFormStatus(record.status);
-    setFormDueDate(record.dueDate.slice(0, 10));
-    setFormLodgementDate(record.lodgementDate ? record.lodgementDate.slice(0, 10) : '');
-    setFormAmount(record.amount.toString());
-    setFormNotes(record.notes || '');
-    setFormHasPenalty(record.hasPenalty || false);
-    setFormPenaltyAmount(record.penaltyAmount ? record.penaltyAmount.toString() : '');
+    setForm({
+      type: record.type,
+      quarter: record.quarter ?? 'Q1',
+      year: record.year,
+      status: record.status,
+      dueDate: record.dueDate.slice(0, 10),
+      lodgementDate: record.lodgementDate ? record.lodgementDate.slice(0, 10) : '',
+      amount: record.amount.toString(),
+      notes: record.notes || '',
+      hasPenalty: record.hasPenalty || false,
+      penaltyAmount: record.penaltyAmount ? record.penaltyAmount.toString() : '',
+    });
     setShowForm(true);
 
-    // Scroll to form after it renders
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -178,34 +124,34 @@ export function LodgementHistory() {
 
   const handleSubmit = () => {
     try {
-      const amount = parseFloat(formAmount) || 0;
-      const penaltyAmount = formHasPenalty ? parseFloat(formPenaltyAmount) || 0 : undefined;
+      const amount = parseFloat(form.amount) || 0;
+      const penaltyAmount = form.hasPenalty ? parseFloat(form.penaltyAmount) || 0 : undefined;
 
-      if (!formDueDate) {
+      if (!form.dueDate) {
         toast.error('Due date is required');
         return;
       }
 
-      if (formStatus === 'lodged' && !formLodgementDate) {
+      if (form.status === 'lodged' && !form.lodgementDate) {
         toast.error('Lodgement date is required when status is lodged');
         return;
       }
 
-      if (formHasPenalty && !formPenaltyAmount) {
+      if (form.hasPenalty && !form.penaltyAmount) {
         toast.error('Penalty amount is required when penalty is applied');
         return;
       }
 
       const recordData = {
-        type: formType,
-        quarter: formType === 'gst-bas' ? formQuarter : undefined,
-        year: formYear,
-        status: formStatus,
-        dueDate: new Date(formDueDate).toISOString(),
-        lodgementDate: formLodgementDate ? new Date(formLodgementDate).toISOString() : undefined,
+        type: form.type,
+        quarter: form.type === 'gst-bas' ? form.quarter : undefined,
+        year: form.year,
+        status: form.status,
+        dueDate: new Date(form.dueDate).toISOString(),
+        lodgementDate: form.lodgementDate ? new Date(form.lodgementDate).toISOString() : undefined,
         amount,
-        notes: formNotes,
-        hasPenalty: formHasPenalty || undefined,
+        notes: form.notes,
+        hasPenalty: form.hasPenalty || undefined,
         penaltyAmount,
         source: 'manual' as const,
       };
@@ -240,51 +186,7 @@ export function LodgementHistory() {
       toast.error('No records to export');
       return;
     }
-
-    const headers = [
-      'ID',
-      'Type',
-      'Year',
-      'Quarter',
-      'Status',
-      'Due Date',
-      'Lodgement Date',
-      'Amount',
-      'Late',
-      'Days Late',
-      'Has Penalty',
-      'Penalty Amount',
-      'Notes',
-      'Source',
-    ];
-
-    const rows = records.map((r) => [
-      r.id,
-      r.type,
-      r.year.toString(),
-      r.quarter || '',
-      r.status,
-      r.dueDate,
-      r.lodgementDate || '',
-      r.amount.toFixed(2),
-      r.isLate ? 'Yes' : 'No',
-      r.daysLate?.toString() || '0',
-      r.hasPenalty ? 'Yes' : 'No',
-      r.penaltyAmount?.toFixed(2) || '0.00',
-      `"${(r.notes || '').replace(/"/g, '""')}"`,
-      r.source || 'manual',
-    ]);
-
-    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `gstcalc-lodgements-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadCsv(records);
     toast.success(`${records.length} records exported as CSV`);
   };
 
@@ -296,43 +198,10 @@ export function LodgementHistory() {
     ) {
       return;
     }
-
-    let successCount = 0;
-    let skipCount = 0;
-    let errorCount = 0;
-
-    BAS_HISTORY_IMPORT.forEach((record) => {
-      try {
-        // Convert date strings to ISO format
-        const recordWithIso = {
-          ...record,
-          dueDate: new Date(record.dueDate + 'T00:00:00').toISOString(),
-          lodgementDate: new Date(record.lodgementDate + 'T00:00:00').toISOString(),
-          source: 'manual' as const,
-        };
-
-        addLodgement(recordWithIso);
-        successCount++;
-      } catch (error) {
-        const errorMessage = (error as Error).message || '';
-        if (errorMessage.includes('already exists')) {
-          skipCount++;
-        } else {
-          errorCount++;
-          console.error('Import error:', error);
-        }
-      }
-    });
-
-    if (successCount > 0) {
-      toast.success(`Imported ${successCount} records successfully`);
-    }
-    if (skipCount > 0) {
-      toast.info(`Skipped ${skipCount} duplicate records`);
-    }
-    if (errorCount > 0) {
-      toast.error(`Failed to import ${errorCount} records`);
-    }
+    const result = importRecords(BAS_HISTORY_IMPORT, addLodgement);
+    if (result.success > 0) toast.success(`Imported ${result.success} records successfully`);
+    if (result.skipped > 0) toast.info(`Skipped ${result.skipped} duplicate records`);
+    if (result.errors > 0) toast.error(`Failed to import ${result.errors} records`);
   };
 
   const handleIncomeTaxImport = () => {
@@ -343,48 +212,15 @@ export function LodgementHistory() {
     ) {
       return;
     }
-
-    let successCount = 0;
-    let skipCount = 0;
-    let errorCount = 0;
-
-    INCOME_TAX_IMPORT.forEach((record) => {
-      try {
-        // Convert date strings to ISO format
-        const recordWithIso = {
-          ...record,
-          dueDate: new Date(record.dueDate + 'T00:00:00').toISOString(),
-          lodgementDate: new Date(record.lodgementDate + 'T00:00:00').toISOString(),
-          source: 'manual' as const,
-        };
-
-        addLodgement(recordWithIso);
-        successCount++;
-      } catch (error) {
-        const errorMessage = (error as Error).message || '';
-        if (errorMessage.includes('already exists')) {
-          skipCount++;
-        } else {
-          errorCount++;
-          console.error('Import error:', error);
-        }
-      }
-    });
-
-    if (successCount > 0) {
-      toast.success(`Imported ${successCount} income tax records successfully`);
-    }
-    if (skipCount > 0) {
-      toast.info(`Skipped ${skipCount} duplicate records`);
-    }
-    if (errorCount > 0) {
-      toast.error(`Failed to import ${errorCount} records`);
-    }
+    const result = importRecords(INCOME_TAX_IMPORT, addLodgement);
+    if (result.success > 0)
+      toast.success(`Imported ${result.success} income tax records successfully`);
+    if (result.skipped > 0) toast.info(`Skipped ${result.skipped} duplicate records`);
+    if (result.errors > 0) toast.error(`Failed to import ${result.errors} records`);
   };
 
   const getYearRange = () => {
     const currentYear = new Date().getFullYear();
-    // 10 years back + current year + 2 years forward = 13 total years
     return Array.from({ length: 13 }, (_, i) => currentYear - 10 + i);
   };
 
@@ -438,103 +274,7 @@ export function LodgementHistory() {
         {/* Filters */}
         {showFilters && (
           <CardContent className="border-t border-slate-200 bg-slate-50 pt-4 dark:border-slate-700 dark:bg-slate-900">
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  value={filterType}
-                  onChange={(e) =>
-                    setFilterType(e.target.value as 'gst-bas' | 'company-tax' | 'income-tax' | '')
-                  }
-                >
-                  <option value="">All types</option>
-                  <option value="gst-bas">GST BAS</option>
-                  <option value="company-tax">Company Tax</option>
-                  <option value="income-tax">Income Tax</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Year</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  value={filterYear}
-                  onChange={(e) => setFilterYear(e.target.value ? parseInt(e.target.value) : '')}
-                >
-                  <option value="">All years</option>
-                  {getYearRange().map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value as 'lodged' | 'not-lodged' | '')}
-                >
-                  <option value="">All statuses</option>
-                  <option value="lodged">Lodged</option>
-                  <option value="not-lodged">Not Lodged</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Penalty</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  value={filterHasPenalty === '' ? '' : filterHasPenalty ? 'true' : 'false'}
-                  onChange={(e) =>
-                    setFilterHasPenalty(e.target.value === '' ? '' : e.target.value === 'true')
-                  }
-                >
-                  <option value="">All records</option>
-                  <option value="true">With Penalty</option>
-                  <option value="false">No Penalty</option>
-                </select>
-              </div>
-
-              {filterType === 'gst-bas' && (
-                <div className="space-y-2">
-                  <Label>Quarter</Label>
-                  <select
-                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                    value={filterQuarter}
-                    onChange={(e) =>
-                      setFilterQuarter(e.target.value as 'Q1' | 'Q2' | 'Q3' | 'Q4' | '')
-                    }
-                  >
-                    <option value="">All quarters</option>
-                    {QUARTERS.map((q) => (
-                      <option key={q} value={q}>
-                        {q}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-3 flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilterType('');
-                  setFilterYear('');
-                  setFilterStatus('');
-                  setFilterQuarter('');
-                  setFilterHasPenalty('');
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
+            <FiltersPanel filters={filters} onChange={setFilters} onClear={() => setFilters({})} />
           </CardContent>
         )}
 
@@ -544,149 +284,14 @@ export function LodgementHistory() {
             ref={formRef}
             className="space-y-4 border-t border-slate-200 bg-slate-50 pt-4 dark:border-slate-700 dark:bg-slate-900"
           >
-            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-              {editingId ? 'Edit Lodgement' : 'Add New Lodgement'}
-            </h3>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  value={formType}
-                  onChange={(e) =>
-                    setFormType(e.target.value as 'gst-bas' | 'company-tax' | 'income-tax')
-                  }
-                >
-                  <option value="gst-bas">GST BAS</option>
-                  <option value="company-tax">Company Tax</option>
-                  <option value="income-tax">Income Tax</option>
-                </select>
-              </div>
-
-              {formType === 'gst-bas' && (
-                <div className="space-y-2">
-                  <Label>Quarter</Label>
-                  <select
-                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                    value={formQuarter}
-                    onChange={(e) => setFormQuarter(e.target.value as 'Q1' | 'Q2' | 'Q3' | 'Q4')}
-                  >
-                    {QUARTERS.map((q) => (
-                      <option key={q} value={q}>
-                        {q}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Year</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  value={formYear}
-                  onChange={(e) => setFormYear(parseInt(e.target.value))}
-                >
-                  {getYearRange().map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  value={formStatus}
-                  onChange={(e) => setFormStatus(e.target.value as 'lodged' | 'not-lodged')}
-                >
-                  <option value="lodged">Lodged</option>
-                  <option value="not-lodged">Not Lodged</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Amount</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formAmount}
-                  onChange={(e) => setFormAmount(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Due Date</Label>
-                <Input
-                  type="date"
-                  value={formDueDate}
-                  onChange={(e) => setFormDueDate(e.target.value)}
-                />
-              </div>
-
-              {formStatus === 'lodged' && (
-                <div className="space-y-2">
-                  <Label>Lodgement Date</Label>
-                  <Input
-                    type="date"
-                    value={formLodgementDate}
-                    onChange={(e) => setFormLodgementDate(e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Notes (optional)</Label>
-              <Input
-                value={formNotes}
-                onChange={(e) => setFormNotes(e.target.value)}
-                placeholder="Add any notes about this lodgement..."
-              />
-            </div>
-
-            <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="hasPenalty"
-                  checked={formHasPenalty}
-                  onChange={(e) => setFormHasPenalty(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-700"
-                />
-                <Label htmlFor="hasPenalty" className="cursor-pointer font-medium">
-                  ATO Penalty Applied
-                </Label>
-              </div>
-
-              {formHasPenalty && (
-                <div className="space-y-2">
-                  <Label>Penalty Amount</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formPenaltyAmount}
-                    onChange={(e) => setFormPenaltyAmount(e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={resetForm}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>{editingId ? 'Update' : 'Add'} Lodgement</Button>
-            </div>
+            <LodgementForm
+              state={form}
+              editingId={editingId}
+              yearRange={getYearRange()}
+              onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+              onSubmit={handleSubmit}
+              onCancel={resetForm}
+            />
           </CardContent>
         )}
       </Card>
