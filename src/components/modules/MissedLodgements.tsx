@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { formatCurrency } from '@/lib/utils';
 import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
+import { dueDateFor } from '@/lib/calculations/dueDates';
 import { useAtoStore } from '@/store/ato';
 import { useLodgementHistoryStore } from '@/store/lodgementHistory';
 import { toast } from 'sonner';
@@ -41,26 +42,12 @@ function computeDefaultDueDate(
   }
 
   if (type === 'gst-bas') {
-    switch (quarter) {
-      case 'Q1':
-        // July–September quarter, due 28 October of the same income year
-        return `${numericYear}-10-28`;
-      case 'Q2':
-        // October–December quarter, due 28 February of the following calendar year
-        return `${numericYear + 1}-02-28`;
-      case 'Q3':
-        // January–March quarter, due 28 April of the following calendar year
-        return `${numericYear + 1}-04-28`;
-      case 'Q4':
-        // April–June quarter, due 28 July of the following calendar year
-        return `${numericYear + 1}-07-28`;
-      default:
-        return null;
-    }
+    if (!quarter) return null;
+    return dueDateFor('gst-bas', quarter, numericYear);
   }
 
-  // Approximate annual company tax due date for planning purposes only
-  return `${numericYear + 1}-05-15`;
+  // Company tax: ATO standard due date (31 January following the income year)
+  return dueDateFor('company-tax', 'Q1', numericYear);
 }
 
 const createEmptyRow = (id: number): MissedPeriod => ({

@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import type { LodgementRecord } from '@/types/lodgement';
 import { InvestigationRiskPanel } from './InvestigationRiskPanel';
 import { BAS_HISTORY_IMPORT, INCOME_TAX_IMPORT } from '@/data/bas-history-import';
+import { dueDateFor } from '@/lib/calculations/dueDates';
 
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const;
 
@@ -135,24 +136,7 @@ export function LodgementHistory() {
     quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4',
     year: number,
   ): string => {
-    if (type === 'gst-bas') {
-      switch (quarter) {
-        case 'Q1': // Jul-Sep
-          return `${year}-10-28`;
-        case 'Q2': // Oct-Dec
-          return `${year + 1}-02-28`;
-        case 'Q3': // Jan-Mar
-          return `${year + 1}-04-28`;
-        case 'Q4': // Apr-Jun
-          return `${year + 1}-07-28`;
-      }
-    } else if (type === 'company-tax') {
-      // Company tax: Due Oct 31 following year
-      return `${year + 1}-10-31`;
-    } else {
-      // Income tax: Due Oct 31 following year
-      return `${year + 1}-10-31`;
-    }
+    return dueDateFor(type, quarter, year);
   };
 
   const resetForm = () => {

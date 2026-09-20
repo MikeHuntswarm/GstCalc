@@ -15,6 +15,7 @@ import {
   Reminder,
   formatReminderDate,
 } from '@/store/reminders';
+import { dueDateFor, superDueDate } from '@/lib/calculations/dueDates';
 
 // Component to display and manage reminders
 export function Reminders() {
@@ -70,38 +71,13 @@ export function Reminders() {
 
     switch (category) {
       case 'bas':
-        // BAS quarters (Australian financial year: July 1 - June 30)
-        switch (quarter) {
-          case 'Q1': // July-September → Due 28 October
-            return `${numericYear}-10-28`;
-          case 'Q2': // October-December → Due 28 February (next calendar year)
-            return `${numericYear + 1}-02-28`;
-          case 'Q3': // January-March → Due 28 April (next calendar year)
-            return `${numericYear + 1}-04-28`;
-          case 'Q4': // April-June → Due 28 July (next calendar year)
-            return `${numericYear + 1}-07-28`;
-          default:
-            return '';
-        }
+        return dueDateFor('gst-bas', quarter as 'Q1' | 'Q2' | 'Q3' | 'Q4', numericYear);
 
       case 'tax_return':
-        // Individual tax return due October 31 (for previous financial year)
-        return `${numericYear + 1}-10-31`;
+        return dueDateFor('income-tax', 'Q1', numericYear);
 
       case 'superannuation':
-        // Superannuation Guarantee due 28th of month after quarter end
-        switch (quarter) {
-          case 'Q1': // July-September → Due 28 October
-            return `${numericYear}-10-28`;
-          case 'Q2': // October-December → Due 28 January (next calendar year)
-            return `${numericYear + 1}-01-28`;
-          case 'Q3': // January-March → Due 28 April (next calendar year)
-            return `${numericYear + 1}-04-28`;
-          case 'Q4': // April-June → Due 28 July (next calendar year)
-            return `${numericYear + 1}-07-28`;
-          default:
-            return '';
-        }
+        return superDueDate(quarter as 'Q1' | 'Q2' | 'Q3' | 'Q4', numericYear);
 
       default:
         return '';
