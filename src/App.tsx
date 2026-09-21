@@ -25,7 +25,7 @@ import { sendNotification } from '@/lib/notifications';
 import { formatPercent } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
-const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.19';
+const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.20';
 
 function LoadingState({ message }: { message: string }) {
   return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
