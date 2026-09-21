@@ -8,8 +8,11 @@ const appRoot = path.dirname(__filename);
 
 const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL;
 
+// The preload must be CommonJS (.cjs): Electron does not support ESM preload
+// scripts in sandboxed renderers, and this package is "type": "module".
+// electron/preload.cts compiles to dist-electron/preload.cjs.
 function resolvePreload() {
-  return path.join(appRoot, 'preload.js');
+  return path.join(appRoot, 'preload.cjs');
 }
 
 export async function createMainWindow(): Promise<BrowserWindow> {
