@@ -15,7 +15,8 @@ declare global {
        * Version information
        */
       versions: {
-        app: () => string;
+        app: () => Promise<string>;
+        electron: () => string;
         chrome: () => string;
         node: () => string;
       };

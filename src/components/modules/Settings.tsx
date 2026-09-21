@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,27 @@ export function Settings() {
   const { theme, setTheme } = useThemeStore();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Resolve the real packaged app version from the Electron bridge when available.
+  const [appVersion, setAppVersion] = useState<string>(
+    import.meta.env['VITE_APP_VERSION'] ?? '0.1.20',
+  );
+  const [electronVersion, setElectronVersion] = useState<string>('');
+
+  useEffect(() => {
+    const api = window.gstcalc;
+    if (api?.versions?.app) {
+      api.versions
+        .app()
+        .then((v) => v && setAppVersion(v))
+        .catch(() => {
+          /* keep the build-time fallback */
+        });
+    }
+    if (api?.versions?.chrome) {
+      setElectronVersion(api.versions.chrome());
+    }
+  }, []);
 
   const storageInfo = getStorageInfo();
   const debugMode = logger.isDebugMode();
@@ -242,12 +263,11 @@ export function Settings() {
               Application Information
             </p>
             <ul className="mt-2 space-y-1 text-blue-800 dark:text-blue-400">
-              <li>• Version: {import.meta.env['VITE_APP_VERSION'] ?? '0.1.6'}</li>
+              <li>• Version: {appVersion}</li>
               <li>• Environment: {import.meta.env.DEV ? 'Development' : 'Production'}</li>
-              <li>• React Version: {import.meta.env.MODE}</li>
               {window.gstcalc && (
                 <>
-                  <li>• Electron: {window.gstcalc.versions.app()}</li>
+                  <li>• Electron: {electronVersion}</li>
                   <li>• Chrome: {window.gstcalc.versions.chrome()}</li>
                   <li>• Node: {window.gstcalc.versions.node()}</li>
                 </>

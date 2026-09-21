@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RefreshCwIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,6 +41,21 @@ export default function App() {
   const { checkDueReminders } = useRemindersStore();
   const { theme, toggleTheme } = useThemeStore();
 
+  // Resolve the real packaged app version from the Electron bridge when available.
+  const [appVersion, setAppVersion] = useState<string>(APP_VERSION);
+
+  useEffect(() => {
+    const api = window.gstcalc;
+    if (api?.versions?.app) {
+      api.versions
+        .app()
+        .then((v) => v && setAppVersion(v))
+        .catch(() => {
+          /* keep the build-time fallback */
+        });
+    }
+  }, []);
+
   useEffect(() => {
     fetchAtoRates();
   }, [fetchAtoRates]);
@@ -52,8 +67,8 @@ export default function App() {
   }, [checkDueReminders]);
 
   useEffect(() => {
-    logger.info('GSTCalc application started', { version: APP_VERSION, theme });
-  }, [theme]);
+    logger.info('GSTCalc application started', { version: appVersion, theme });
+  }, [theme, appVersion]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -104,7 +119,7 @@ export default function App() {
                   GSTCalc
                 </span>
                 <Badge variant="outline">
-                  v{APP_VERSION} · ATO data effective{' '}
+                  v{appVersion} · ATO data effective{' '}
                   {lastUpdated ? new Date(lastUpdated).toLocaleDateString('en-AU') : 'Pending'}
                 </Badge>
               </div>

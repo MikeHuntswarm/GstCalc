@@ -3,7 +3,8 @@ import type { UpdateInfo, ProgressInfo } from 'electron-updater';
 
 contextBridge.exposeInMainWorld('gstcalc', {
   versions: {
-    app: () => process.versions.electron,
+    app: () => ipcRenderer.invoke('app:get-version'),
+    electron: () => process.versions.electron,
     chrome: () => process.versions.chrome,
     node: () => process.versions.node,
   },

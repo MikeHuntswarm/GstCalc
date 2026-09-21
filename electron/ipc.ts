@@ -1,4 +1,4 @@
-import { ipcMain, Notification } from 'electron';
+import { app, ipcMain, Notification } from 'electron';
 import { relaunchAndInstall, checkForUpdates } from './updater.js';
 
 const NOTIFICATION_COOLDOWN = 1000; // 1 second
@@ -6,6 +6,10 @@ const NOTIFICATION_COOLDOWN = 1000; // 1 second
 export function registerIpcHandlers() {
   // Rate limiting for notifications
   let lastNotificationTime = 0;
+
+  // Expose the real packaged app version (from package.json via app.getVersion()).
+  // This is the single source of truth for the version shown in the UI.
+  ipcMain.handle('app:get-version', () => app.getVersion());
 
   ipcMain.on('show-notification', (event, title, body) => {
     const now = Date.now();
