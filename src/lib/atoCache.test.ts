@@ -61,7 +61,7 @@ describe('atoCache', () => {
   });
 
   it('isCacheExpired respects the expiry window', () => {
-    const fresh = writeCachedAto(sample);
+    writeCachedAto(sample);
     const entry = readCachedAto()!;
     expect(isCacheExpired(entry, entry.timestamp)).toBe(false);
     // 7 days + 1ms later → expired

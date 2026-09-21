@@ -1,13 +1,7 @@
 import { create } from 'zustand';
 import type { AtoData } from '@/types/ato';
 import { AtoDataSchema } from '@/types/ato.schema';
-import {
-  readCachedAto,
-  writeCachedAto,
-  clearCachedAto,
-  isCacheExpired,
-  isPayloadDifferent,
-} from '@/lib/atoCache';
+import { readCachedAto, writeCachedAto, isCacheExpired, isPayloadDifferent } from '@/lib/atoCache';
 
 interface AtoState {
   data: AtoData | null;

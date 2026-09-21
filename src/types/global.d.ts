@@ -1,4 +1,3 @@
-import type { AtoData } from './ato';
 import type { UpdateInfo, ProgressInfo } from 'electron-updater';
 
 /**

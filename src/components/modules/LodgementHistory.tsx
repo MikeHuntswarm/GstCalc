@@ -27,8 +27,6 @@ import { importRecords } from '@/lib/lodgementImport';
 import { LodgementForm, type LodgementFormState } from './lodgement/LodgementForm';
 import { LodgementFilters as FiltersPanel } from './lodgement/LodgementFilters';
 
-const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const;
-
 const EMPTY_FORM: LodgementFormState = {
   type: 'gst-bas',
   quarter: 'Q1',

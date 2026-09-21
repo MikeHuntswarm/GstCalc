@@ -116,7 +116,7 @@ export function Reminders() {
         }
       }
     }
-  }, [formCategory, selectedQuarter, selectedYear]);
+  }, [formCategory, selectedQuarter, selectedYear, formLabel]);
 
   const resetForm = () => {
     setFormLabel('');

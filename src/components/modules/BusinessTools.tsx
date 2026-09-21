@@ -7,7 +7,7 @@ import { Alert } from '@/components/ui/alert';
 import { sendNotification } from '@/lib/notifications';
 import { useAtoStore } from '@/store/ato';
 import { useRemindersStore } from '@/store/reminders';
-import { formatPercent } from '@/lib/utils';
+
 import { CompanyTaxReference } from './business/CompanyTaxReference';
 import { GstBasHelper } from './business/GstBasHelper';
 import { BasSchedule } from './business/BasSchedule';
