@@ -27,7 +27,7 @@ export function Settings() {
 
   // Resolve the real packaged app version from the Electron bridge when available.
   const [appVersion, setAppVersion] = useState<string>(
-    import.meta.env['VITE_APP_VERSION'] ?? '0.1.20',
+    import.meta.env['VITE_APP_VERSION'] ?? '0.1.21',
   );
   const [electronVersion, setElectronVersion] = useState<string>('');
 
