@@ -16,6 +16,7 @@ import {
   formatReminderDate,
 } from '@/store/reminders';
 import { dueDateFor, superDueDate } from '@/lib/calculations/dueDates';
+import { sendNotification } from '@/lib/notifications';
 
 // Component to display and manage reminders
 export function Reminders() {
@@ -46,7 +47,8 @@ export function Reminders() {
 
   // Check for due reminders on mount and when reminders change
   useEffect(() => {
-    checkDueReminders();
+    const due = checkDueReminders();
+    due.forEach(({ title, body }) => sendNotification(title, body));
   }, [reminders, checkDueReminders]);
 
   // Filter reminders by category

@@ -21,6 +21,7 @@ import { Settings } from '@/components/modules/Settings';
 import { useAtoStore } from '@/store/ato';
 import { useRemindersStore } from '@/store/reminders';
 import { useThemeStore } from '@/store/theme';
+import { sendNotification } from '@/lib/notifications';
 import { formatPercent } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
@@ -45,8 +46,9 @@ export default function App() {
   }, [fetchAtoRates]);
 
   useEffect(() => {
-    // Check for due reminders on app start
-    checkDueReminders();
+    // Check for due reminders on app start and fire notifications
+    const due = checkDueReminders();
+    due.forEach(({ title, body }) => sendNotification(title, body));
   }, [checkDueReminders]);
 
   useEffect(() => {
