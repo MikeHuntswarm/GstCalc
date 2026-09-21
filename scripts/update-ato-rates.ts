@@ -24,13 +24,14 @@ function assertValidPayload(payload: RatePayload) {
     throw new Error('ATO rate payload was empty');
   }
 
+  // Keys that must always be present. `lodgements` is optional in the schema
+  // and absent from the current payload, so it is intentionally not required.
   const requiredKeys: (keyof RatePayload)[] = [
     'metadata',
     'gst',
     'individual',
     'company',
     'penalties',
-    'lodgements',
     'taxPlanning',
   ];
   for (const key of requiredKeys) {
