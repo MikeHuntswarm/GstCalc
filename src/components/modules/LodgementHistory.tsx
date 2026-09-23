@@ -23,7 +23,7 @@ import { InvestigationRiskPanel } from './InvestigationRiskPanel';
 import { BAS_HISTORY_IMPORT, INCOME_TAX_IMPORT } from '@/data/bas-history-import';
 import { dueDateFor } from '@/lib/calculations/dueDates';
 import { downloadCsv } from '@/lib/lodgementExport';
-import { importRecords } from '@/lib/lodgementImport';
+import { importRecords, toIsoDate } from '@/lib/lodgementImport';
 import { LodgementForm, type LodgementFormState } from './lodgement/LodgementForm';
 import { LodgementFilters as FiltersPanel } from './lodgement/LodgementFilters';
 
@@ -142,8 +142,8 @@ export function LodgementHistory() {
         quarter: form.type === 'gst-bas' ? form.quarter : undefined,
         year: form.year,
         status: form.status,
-        dueDate: new Date(form.dueDate).toISOString(),
-        lodgementDate: form.lodgementDate ? new Date(form.lodgementDate).toISOString() : undefined,
+        dueDate: toIsoDate(form.dueDate),
+        lodgementDate: form.lodgementDate ? toIsoDate(form.lodgementDate) : undefined,
         amount,
         notes: form.notes,
         hasPenalty: form.hasPenalty || undefined,

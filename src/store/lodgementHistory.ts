@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware';
 import type { LodgementRecord, LodgementSummary, LodgementFilters } from '@/types/lodgement';
 import { LodgementRecordSchema } from '@/types/lodgement.schema';
 import { STORAGE_KEYS } from '@/lib/constants';
+import { toIsoDate } from '@/lib/lodgementImport';
+import { ValidationError } from '@/lib/errors';
 
 interface LodgementHistoryState {
   records: LodgementRecord[];
@@ -110,7 +112,7 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
           validated.quarter,
         );
         if (duplicate) {
-          throw new Error(
+          throw new ValidationError(
             `A ${validated.type} lodgement for ${validated.year}${validated.quarter ? ` ${validated.quarter}` : ''} already exists`,
           );
         }
@@ -191,7 +193,7 @@ export const useLodgementHistoryStore = create<LodgementHistoryState>()(
               : undefined,
           status: 'not-lodged',
           dueDate: missedPeriod.dueDate
-            ? new Date(missedPeriod.dueDate).toISOString()
+            ? toIsoDate(missedPeriod.dueDate)
             : new Date().toISOString(),
           amount,
           notes: missedPeriod.notes || '',
