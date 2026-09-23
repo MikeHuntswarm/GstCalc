@@ -40,7 +40,9 @@ export const useAtoStore = create<AtoState>((set) => ({
         fetchData()
           .then((freshData) => {
             if (isPayloadDifferent(freshData, cached.data)) {
-              set({ stale: true });
+              // Apply the fresh payload and clear staleness — don't discard it.
+              writeCachedAto(freshData);
+              set({ data: freshData, status: 'success', stale: false });
             }
           })
           .catch(() => set({ stale: true }));

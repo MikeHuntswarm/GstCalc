@@ -19,6 +19,7 @@ import { FrankingCredits } from '@/components/modules/FrankingCredits';
 import { SuperCalculator } from '@/components/modules/SuperCalculator';
 import { Settings } from '@/components/modules/Settings';
 import { useAtoStore } from '@/store/ato';
+import { AtoDataStatus } from '@/components/AtoDataStatus';
 import { useRemindersStore } from '@/store/reminders';
 import { useThemeStore } from '@/store/theme';
 import { sendNotification } from '@/lib/notifications';
@@ -26,17 +27,8 @@ import { formatPercent } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
 const APP_VERSION = import.meta.env['VITE_APP_VERSION'] ?? '0.1.21';
-
-function LoadingState({ message }: { message: string }) {
-  return <Alert className="border-blue-200 bg-blue-50 text-blue-900">{message}</Alert>;
-}
-
-function ErrorState({ message }: { message: string }) {
-  return <Alert variant="warning">{message}</Alert>;
-}
-
 export default function App() {
-  const { data, status, error, stale, fetchAtoRates, refresh } = useAtoStore();
+  const { data, fetchAtoRates, refresh } = useAtoStore();
 
   const { checkDueReminders } = useRemindersStore();
   const { theme, toggleTheme } = useThemeStore();
@@ -166,34 +158,7 @@ export default function App() {
         </header>
 
         <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-          {status === 'loading' ? (
-            <LoadingState message="Fetching the latest rates from the ATO..." />
-          ) : null}
-          {error ? <ErrorState message={`Using cached data. ${error}`} /> : null}
-          {stale ? (
-            <Alert variant="warning">
-              Cached rates may be out of date. Refresh when you are back online to pull the latest
-              data from the ATO.
-            </Alert>
-          ) : null}
-          {data && lastUpdated
-            ? (() => {
-                const daysSinceUpdate = Math.floor(
-                  (Date.now() - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24),
-                );
-                if (daysSinceUpdate > 7) {
-                  return (
-                    <Alert variant="destructive">
-                      ATO rate data is {daysSinceUpdate} days old. Tax brackets, penalty units, and
-                      interest rates may have changed since{' '}
-                      {new Date(lastUpdated).toLocaleDateString('en-AU')}. Click the Refresh rates
-                      button above to pull the latest data.
-                    </Alert>
-                  );
-                }
-                return null;
-              })()
-            : null}
+          <AtoDataStatus variant="banner" />
 
           <Tabs defaultValue="overview" className="space-y-6">
             <div className="overflow-x-auto pb-1">

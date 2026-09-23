@@ -3,13 +3,14 @@ import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { CalendarCheckIcon, LineChartIcon, ShieldAlertIcon } from 'lucide-react';
 import { useAtoStore } from '@/store/ato';
+import { AtoDataStatus } from '@/components/AtoDataStatus';
 import { useRemindersStore } from '@/store/reminders';
 import { useLodgementHistoryStore } from '@/store/lodgementHistory';
 import { useInvestigationRisk } from '@/lib/useInvestigationRisk';
 import { formatPercent } from '@/lib/utils';
 
 export function OverviewDashboard() {
-  const { data, status, error, stale } = useAtoStore();
+  const { data } = useAtoStore();
   const { getUpcomingReminders } = useRemindersStore();
   const { records: lodgementRecords } = useLodgementHistoryStore();
 
@@ -48,14 +49,7 @@ export function OverviewDashboard() {
             Last updated{' '}
             {lastUpdated ? new Date(lastUpdated).toLocaleDateString('en-AU') : 'Pending sync'}.
           </p>
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Badge variant="outline">
-              Status:{' '}
-              {status === 'loading' ? 'Loading' : status === 'error' ? 'Using cache' : 'Ready'}
-            </Badge>
-            {stale ? <Badge variant="warning">Cached data may be out of date</Badge> : null}
-            {error ? <span className="text-danger-foreground text-xs">{String(error)}</span> : null}
-          </div>
+          <AtoDataStatus variant="badge" />
         </CardContent>
       </Card>
 
