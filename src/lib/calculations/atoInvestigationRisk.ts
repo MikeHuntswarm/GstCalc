@@ -13,6 +13,7 @@ export type RiskFlagType =
   | 'round-numbers'
   | 'decreasing-compliance'
   | 'high-penalty-exposure'
+  | 'actual-penalties'
   | 'chronic-non-compliance';
 
 export interface RiskFlag {
@@ -51,19 +52,17 @@ function formatPeriodKey(record: LodgementRecord): string {
     : `${record.type} ${record.year}`;
 }
 
-function getDaysLate(record: LodgementRecord): number {
+function getDaysLate(record: LodgementRecord, now: Date): number {
   const dueDate = new Date(record.dueDate);
   const compareDate =
-    record.status === 'lodged' && record.lodgementDate
-      ? new Date(record.lodgementDate)
-      : new Date();
+    record.status === 'lodged' && record.lodgementDate ? new Date(record.lodgementDate) : now;
 
   const diffMs = compareDate.getTime() - dueDate.getTime();
   return diffMs > 0 ? Math.floor(diffMs / (1000 * 60 * 60 * 24)) : 0;
 }
 
 // Detector 1: Consecutive late lodgements
-function detectConsecutiveLate(records: LodgementRecord[]): RiskFlag | null {
+function detectConsecutiveLate(records: LodgementRecord[], now: Date): RiskFlag | null {
   const sortedRecords = [...records].sort(
     (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
   );
@@ -73,7 +72,7 @@ function detectConsecutiveLate(records: LodgementRecord[]): RiskFlag | null {
   const affectedPeriods: string[] = [];
 
   for (const record of sortedRecords) {
-    const daysLate = getDaysLate(record);
+    const daysLate = getDaysLate(record, now);
     if (daysLate > 0) {
       consecutiveCount++;
       affectedPeriods.push(formatPeriodKey(record));
@@ -255,8 +254,8 @@ function detectNilThenLarge(records: LodgementRecord[]): RiskFlag | null {
 }
 
 // Detector 5: Excessive delays (>90 days late multiple times)
-function detectExcessiveDelays(records: LodgementRecord[]): RiskFlag | null {
-  const excessivelyLate = records.filter((r) => getDaysLate(r) > 90);
+function detectExcessiveDelays(records: LodgementRecord[], now: Date): RiskFlag | null {
+  const excessivelyLate = records.filter((r) => getDaysLate(r, now) > 90);
 
   if (excessivelyLate.length >= 3) {
     return {
@@ -306,14 +305,14 @@ function detectRoundNumberPattern(records: LodgementRecord[]): RiskFlag | null {
 }
 
 // Detector 7: Decreasing compliance (trend of increasing delays)
-function detectDecreasingCompliance(records: LodgementRecord[]): RiskFlag | null {
+function detectDecreasingCompliance(records: LodgementRecord[], now: Date): RiskFlag | null {
   const sortedRecords = [...records]
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(-6); // Last 6 periods
 
   if (sortedRecords.length < 4) return null;
 
-  const delays = sortedRecords.map((r) => getDaysLate(r));
+  const delays = sortedRecords.map((r) => getDaysLate(r, now));
   const firstHalf = delays.slice(0, Math.floor(delays.length / 2));
   const secondHalf = delays.slice(Math.floor(delays.length / 2));
 
@@ -349,7 +348,8 @@ function detectDecreasingCompliance(records: LodgementRecord[]): RiskFlag | null
 // Detector 8: High penalty exposure
 function detectHighPenaltyExposure(
   records: LodgementRecord[],
-  penalties?: PenaltySchedule,
+  penalties: PenaltySchedule | undefined,
+  now: Date,
 ): RiskFlag | null {
   if (!penalties) return null;
 
@@ -357,7 +357,7 @@ function detectHighPenaltyExposure(
   const affectedPeriods: string[] = [];
 
   for (const record of records) {
-    const daysLate = getDaysLate(record);
+    const daysLate = getDaysLate(record, now);
     if (daysLate > 0) {
       const estimate = estimateFailureToLodgePenalty(daysLate, penalties.failureToLodge);
       totalPenalties += estimate.amount;
@@ -394,10 +394,10 @@ function detectHighPenaltyExposure(
 }
 
 // Detector 9: Chronic non-compliance (>50% late rate)
-function detectChronicNonCompliance(records: LodgementRecord[]): RiskFlag | null {
+function detectChronicNonCompliance(records: LodgementRecord[], now: Date): RiskFlag | null {
   if (records.length < 4) return null;
 
-  const lateRecords = records.filter((r) => getDaysLate(r) > 0);
+  const lateRecords = records.filter((r) => getDaysLate(r, now) > 0);
   const latePercentage = (lateRecords.length / records.length) * 100;
 
   if (latePercentage > 75) {
@@ -441,7 +441,7 @@ function detectActualPenalties(records: LodgementRecord[]): RiskFlag | null {
   // 3+ penalties = critical risk
   if (penalizedRecords.length >= 3) {
     return {
-      type: 'high-penalty-exposure',
+      type: 'actual-penalties',
       severity: 'critical',
       message: `${penalizedRecords.length} ATO penalties applied (total: $${totalPenalties.toFixed(2)})`,
       affectedPeriods,
@@ -458,7 +458,7 @@ function detectActualPenalties(records: LodgementRecord[]): RiskFlag | null {
   // 2 penalties = high risk
   if (penalizedRecords.length === 2) {
     return {
-      type: 'high-penalty-exposure',
+      type: 'actual-penalties',
       severity: 'high',
       message: `${penalizedRecords.length} ATO penalties applied (total: $${totalPenalties.toFixed(2)})`,
       affectedPeriods,
@@ -474,7 +474,7 @@ function detectActualPenalties(records: LodgementRecord[]): RiskFlag | null {
 
   // 1 penalty = low risk (everyone makes mistakes)
   return {
-    type: 'high-penalty-exposure',
+    type: 'actual-penalties',
     severity: 'low',
     message: `1 ATO penalty applied ($${totalPenalties.toFixed(2)})`,
     affectedPeriods,
@@ -556,20 +556,21 @@ function generateRecommendations(flags: RiskFlag[]): string[] {
 export function assessInvestigationRisk(
   lodgementHistory: LodgementRecord[],
   penalties?: PenaltySchedule,
+  now: Date = new Date(),
 ): RiskAssessment {
   const flags: RiskFlag[] = [];
 
   // Run all detectors
   const detectors = [
-    () => detectConsecutiveLate(lodgementHistory),
+    () => detectConsecutiveLate(lodgementHistory, now),
     () => detectMissingQuarters(lodgementHistory),
     () => detectLargeVariations(lodgementHistory),
     () => detectNilThenLarge(lodgementHistory),
-    () => detectExcessiveDelays(lodgementHistory),
+    () => detectExcessiveDelays(lodgementHistory, now),
     () => detectRoundNumberPattern(lodgementHistory),
-    () => detectDecreasingCompliance(lodgementHistory),
-    () => detectHighPenaltyExposure(lodgementHistory, penalties),
-    () => detectChronicNonCompliance(lodgementHistory),
+    () => detectDecreasingCompliance(lodgementHistory, now),
+    () => detectHighPenaltyExposure(lodgementHistory, penalties, now),
+    () => detectChronicNonCompliance(lodgementHistory, now),
     () => detectActualPenalties(lodgementHistory), // NEW: Check actual ATO penalties
   ];
 
@@ -591,6 +592,6 @@ export function assessInvestigationRisk(
     flags,
     recommendations,
     summary,
-    lastAnalyzed: new Date().toISOString(),
+    lastAnalyzed: now.toISOString(),
   };
 }

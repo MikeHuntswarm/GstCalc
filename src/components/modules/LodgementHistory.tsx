@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLodgementHistoryStore } from '@/store/lodgementHistory';
 import { useAtoStore } from '@/store/ato';
-import { assessInvestigationRisk } from '@/lib/calculations/atoInvestigationRisk';
+import { useInvestigationRisk } from '@/lib/useInvestigationRisk';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { LodgementRecord, LodgementFilters } from '@/types/lodgement';
@@ -81,10 +81,7 @@ export function LodgementHistory() {
     [getSummary, filters],
   );
 
-  const riskAssessment = useMemo(
-    () => assessInvestigationRisk(records, atoData?.penalties),
-    [records, atoData],
-  );
+  const riskAssessment = useInvestigationRisk(records, atoData?.penalties);
 
   // Auto-populate due date when type, quarter, or year changes (only for new records)
   useEffect(() => {

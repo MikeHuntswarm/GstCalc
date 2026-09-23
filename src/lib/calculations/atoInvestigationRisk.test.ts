@@ -548,3 +548,21 @@ describe('Overall risk assessment', () => {
     expect(excessiveFlag?.details?.metric).toBeDefined();
   });
 });
+
+describe('determinism', () => {
+  it('returns identical assessments for an explicit now across calls', () => {
+    const records: LodgementRecord[] = [
+      record({
+        id: '1',
+        status: 'not-lodged',
+        dueDate: '2024-10-28T00:00:00Z',
+        amount: 5000,
+      }),
+    ];
+    const now = new Date('2026-01-15T00:00:00Z');
+    const a = assessInvestigationRisk(records, undefined, now);
+    const b = assessInvestigationRisk(records, undefined, now);
+    expect(a).toEqual(b);
+    expect(a.lastAnalyzed).toBe(now.toISOString());
+  });
+});

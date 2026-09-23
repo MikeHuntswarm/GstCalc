@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import type { RiskAssessment, RiskSeverity } from '@/lib/calculations/atoInvestigationRisk';
 
 interface InvestigationRiskPanelProps {
-  riskAssessment: RiskAssessment;
+  riskAssessment: RiskAssessment | null;
   compact?: boolean;
 }
 
@@ -51,6 +51,8 @@ export function InvestigationRiskPanel({
   compact = false,
 }: InvestigationRiskPanelProps) {
   const [expanded, setExpanded] = useState(false);
+
+  if (!riskAssessment) return null;
 
   const colors = SEVERITY_COLORS[riskAssessment.overallRisk];
 

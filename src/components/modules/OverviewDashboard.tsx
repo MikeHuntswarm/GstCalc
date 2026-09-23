@@ -5,9 +5,8 @@ import { CalendarCheckIcon, LineChartIcon, ShieldAlertIcon } from 'lucide-react'
 import { useAtoStore } from '@/store/ato';
 import { useRemindersStore } from '@/store/reminders';
 import { useLodgementHistoryStore } from '@/store/lodgementHistory';
-import { assessInvestigationRisk } from '@/lib/calculations/atoInvestigationRisk';
+import { useInvestigationRisk } from '@/lib/useInvestigationRisk';
 import { formatPercent } from '@/lib/utils';
-import { useMemo } from 'react';
 
 export function OverviewDashboard() {
   const { data, status, error, stale } = useAtoStore();
@@ -20,10 +19,7 @@ export function OverviewDashboard() {
   const fullRate = data?.company?.fullRate;
   const upcomingReminders = getUpcomingReminders(30);
 
-  const riskAssessment = useMemo(() => {
-    if (lodgementRecords.length === 0) return null;
-    return assessInvestigationRisk(lodgementRecords, data?.penalties);
-  }, [lodgementRecords, data?.penalties]);
+  const riskAssessment = useInvestigationRisk(lodgementRecords, data?.penalties);
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
