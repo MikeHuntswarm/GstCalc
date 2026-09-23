@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { PlusIcon, BellIcon, TrashIcon, PencilIcon } from 'lucide-react';
-import { format, parse } from 'date-fns';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,25 +8,20 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 
+import { useRemindersStore, ReminderCategory, Reminder } from '@/store/reminders';
 import {
-  useRemindersStore,
-  ReminderCategory,
-  Reminder,
-  formatReminderDate,
-} from '@/store/reminders';
-import { dueDateFor, superDueDate } from '@/lib/calculations/dueDates';
-import { sendNotification } from '@/lib/notifications';
+  parseReminderDate,
+  daysUntilDue,
+  toInputDate,
+  fromInputDate,
+  reminderDueDate,
+  CATEGORY_BADGE_LABELS,
+} from '@/lib/reminderDates';
 
 // Component to display and manage reminders
 export function Reminders() {
-  const {
-    reminders,
-    addReminder,
-    updateReminder,
-    removeReminder,
-    checkDueReminders,
-    getUpcomingReminders,
-  } = useRemindersStore();
+  const { reminders, addReminder, updateReminder, removeReminder, getUpcomingReminders } =
+    useRemindersStore();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
@@ -45,12 +39,6 @@ export function Reminders() {
   const [selectedQuarter, setSelectedQuarter] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
 
-  // Check for due reminders on mount and when reminders change
-  useEffect(() => {
-    const due = checkDueReminders();
-    due.forEach(({ title, body }) => sendNotification(title, body));
-  }, [reminders, checkDueReminders]);
-
   // Filter reminders by category
   const filteredReminders =
     selectedCategory === 'all'
@@ -59,37 +47,17 @@ export function Reminders() {
 
   // Sort reminders by due date
   const sortedReminders = [...filteredReminders].sort((a, b) => {
-    const dateA = parse(a.dueDate, 'd MMMM yyyy', new Date());
-    const dateB = parse(b.dueDate, 'd MMMM yyyy', new Date());
-    return dateA.getTime() - dateB.getTime();
+    const dateA = parseReminderDate(a.dueDate);
+    const dateB = parseReminderDate(b.dueDate);
+    return (dateA?.getTime() ?? 0) - (dateB?.getTime() ?? 0);
   });
 
   const upcomingReminders = getUpcomingReminders(14);
 
-  // Helper function to calculate due date based on category, quarter, and year
-  const calculateDueDate = (category: ReminderCategory, quarter: string, year: string): string => {
-    const numericYear = parseInt(year, 10);
-    if (!numericYear || isNaN(numericYear)) return '';
-
-    switch (category) {
-      case 'bas':
-        return dueDateFor('gst-bas', quarter as 'Q1' | 'Q2' | 'Q3' | 'Q4', numericYear);
-
-      case 'tax_return':
-        return dueDateFor('income-tax', 'Q1', numericYear);
-
-      case 'superannuation':
-        return superDueDate(quarter as 'Q1' | 'Q2' | 'Q3' | 'Q4', numericYear);
-
-      default:
-        return '';
-    }
-  };
-
   // Auto-populate due date when category, quarter, or year changes
   useEffect(() => {
     if (formCategory !== 'custom' && selectedQuarter && selectedYear) {
-      const dueDate = calculateDueDate(formCategory, selectedQuarter, selectedYear);
+      const dueDate = reminderDueDate(formCategory, selectedQuarter, parseInt(selectedYear, 10));
       if (dueDate) {
         setFormDueDate(dueDate);
 
@@ -108,7 +76,7 @@ export function Reminders() {
       }
     } else if (formCategory === 'tax_return' && selectedYear) {
       // Tax return only needs year
-      const dueDate = calculateDueDate(formCategory, '', selectedYear);
+      const dueDate = reminderDueDate(formCategory, '', parseInt(selectedYear, 10));
       if (dueDate) {
         setFormDueDate(dueDate);
         if (!formLabel) {
@@ -136,7 +104,7 @@ export function Reminders() {
 
   const handleStartEdit = (reminder: Reminder) => {
     setFormLabel(reminder.label);
-    setFormDueDate(format(parse(reminder.dueDate, 'd MMMM yyyy', new Date()), 'yyyy-MM-dd'));
+    setFormDueDate(toInputDate(reminder.dueDate));
     setFormCategory(reminder.category);
     setFormNotifyDays(reminder.notifyDaysBefore);
     setFormNotes(reminder.notes || '');
@@ -147,8 +115,8 @@ export function Reminders() {
   const handleSave = () => {
     if (!formLabel || !formDueDate) return;
 
-    const dueDateObj = parse(formDueDate, 'yyyy-MM-dd', new Date());
-    const formattedDueDate = formatReminderDate(dueDateObj);
+    const formattedDueDate = fromInputDate(formDueDate);
+    if (!formattedDueDate) return;
 
     if (editingReminderId) {
       updateReminder(editingReminderId, {
@@ -190,21 +158,6 @@ export function Reminders() {
     );
   };
 
-  const getCategoryLabel = (category: ReminderCategory): string => {
-    switch (category) {
-      case 'bas':
-        return 'BAS Lodgement';
-      case 'tax_return':
-        return 'Tax Return';
-      case 'superannuation':
-        return 'Superannuation';
-      case 'custom':
-        return 'Custom';
-      default:
-        return 'Unknown';
-    }
-  };
-
   const getCategoryStyle = (category: ReminderCategory): string => {
     switch (category) {
       case 'bas':
@@ -221,10 +174,10 @@ export function Reminders() {
   };
 
   const getDaysUntilLabel = (dueDate: string): { label: string; style: string } => {
-    const today = new Date();
-    const due = parse(dueDate, 'd MMMM yyyy', new Date());
-    const daysUntil = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
+    const daysUntil = daysUntilDue(dueDate);
+    if (daysUntil === null) {
+      return { label: 'Unknown', style: 'bg-slate-100 text-slate-800' };
+    }
     if (daysUntil < 0) {
       return { label: `${Math.abs(daysUntil)} days overdue`, style: 'bg-red-100 text-red-800' };
     }
@@ -269,7 +222,7 @@ export function Reminders() {
                     <div>
                       <div className="flex items-center gap-2">
                         <Badge className={getCategoryStyle(reminder.category)}>
-                          {getCategoryLabel(reminder.category)}
+                          {CATEGORY_BADGE_LABELS[reminder.category]}
                         </Badge>
                         <span className="font-medium text-slate-900">{reminder.label}</span>
                       </div>
@@ -538,7 +491,7 @@ export function Reminders() {
                       <div>
                         <div className="flex items-center gap-2">
                           <Badge className={getCategoryStyle(reminder.category)}>
-                            {getCategoryLabel(reminder.category)}
+                            {CATEGORY_BADGE_LABELS[reminder.category]}
                           </Badge>
                           <h3 className="text-lg font-semibold text-slate-900">{reminder.label}</h3>
                         </div>

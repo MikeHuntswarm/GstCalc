@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { getDueReminders, daysUntilDue, formatReminderDate } from './reminderDates';
+import {
+  getDueReminders,
+  daysUntilDue,
+  formatReminderDate,
+  toInputDate,
+  fromInputDate,
+  reminderDueDate,
+  CATEGORY_LABELS,
+  CATEGORY_BADGE_LABELS,
+} from './reminderDates';
 import type { Reminder } from '../store/reminders';
 
 function reminder(overrides: Partial<Reminder> = {}): Reminder {
@@ -27,6 +36,62 @@ describe('daysUntilDue', () => {
 describe('formatReminderDate', () => {
   it('formats a Date in the reminder format', () => {
     expect(formatReminderDate(new Date('2026-10-28T00:00:00'))).toBe('28 October 2026');
+  });
+});
+
+describe('toInputDate / fromInputDate', () => {
+  it('converts a reminder date string to yyyy-MM-dd for an input[type=date]', () => {
+    expect(toInputDate('28 October 2026')).toBe('2026-10-28');
+  });
+
+  it('returns empty string for unparseable reminder dates', () => {
+    expect(toInputDate('garbage')).toBe('');
+  });
+
+  it('converts an input value back to the reminder format', () => {
+    expect(fromInputDate('2026-10-28')).toBe('28 October 2026');
+  });
+
+  it('returns null for unparseable input values', () => {
+    expect(fromInputDate('not-a-date')).toBeNull();
+  });
+});
+
+describe('reminderDueDate', () => {
+  it('derives a BAS due date from quarter and year', () => {
+    expect(reminderDueDate('bas', 'Q1', 2026)).toBe('2026-10-28');
+  });
+
+  it('derives a tax return due date from year only', () => {
+    expect(reminderDueDate('tax_return', '', 2026)).toBe('2027-10-31');
+  });
+
+  it('derives a superannuation due date from quarter and year', () => {
+    expect(reminderDueDate('superannuation', 'Q2', 2026)).toBe('2027-01-28');
+  });
+
+  it('returns empty for custom categories', () => {
+    expect(reminderDueDate('custom', 'Q1', 2026)).toBe('');
+  });
+
+  it('returns empty when quarter is missing for a quarter-based category', () => {
+    expect(reminderDueDate('bas', '', 2026)).toBe('');
+  });
+});
+
+describe('category labels', () => {
+  it('uses Reminder in notification titles for custom', () => {
+    expect(CATEGORY_LABELS.custom).toBe('Reminder');
+  });
+
+  it('uses Custom on the badge for custom', () => {
+    expect(CATEGORY_BADGE_LABELS.custom).toBe('Custom');
+  });
+
+  it('keeps the non-custom labels aligned', () => {
+    for (const c of ['bas', 'tax_return', 'superannuation'] as const) {
+      expect(CATEGORY_BADGE_LABELS[c]).toBe(CATEGORY_LABELS[c]);
+    }
   });
 });
 
