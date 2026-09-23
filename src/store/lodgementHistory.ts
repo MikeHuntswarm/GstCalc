@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { LodgementRecord, LodgementSummary, LodgementFilters } from '@/types/lodgement';
+import type {
+  LodgementRecord,
+  LodgementSummary,
+  LodgementFilters,
+  MissedPeriod,
+} from '@/types/lodgement';
 import { LodgementRecordSchema } from '@/types/lodgement.schema';
 import { STORAGE_KEYS } from '@/lib/constants';
 import { toIsoDate } from '@/lib/lodgementImport';
@@ -21,14 +26,7 @@ interface LodgementHistoryState {
   markAsNotLodged: (id: string) => void;
 
   // Conversion utility
-  convertFromMissed: (missedPeriod: {
-    type: 'gst-bas' | 'company-tax';
-    quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4' | '';
-    year: string;
-    amount: string;
-    dueDate: string;
-    notes: string;
-  }) => LodgementRecord;
+  convertFromMissed: (missedPeriod: MissedPeriod) => LodgementRecord;
 
   // Querying
   getLodgementById: (id: string) => LodgementRecord | undefined;

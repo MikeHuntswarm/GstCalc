@@ -39,3 +39,18 @@ export interface LodgementFilters {
   quarter?: 'Q1' | 'Q2' | 'Q3' | 'Q4';
   hasPenalty?: boolean;
 }
+
+/**
+ * A missed lodgement row from the Catch-up planner. Shared so the lodgement
+ * store's convertFromMissed seam doesn't couple to a component-local shape.
+ */
+export interface MissedPeriod {
+  id: number;
+  type: 'gst-bas' | 'company-tax';
+  quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4' | '';
+  year: string;
+  label: string;
+  amount: string;
+  dueDate: string;
+  notes: string;
+}

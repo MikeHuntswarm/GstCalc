@@ -11,23 +11,13 @@ import { estimateFailureToLodgePenalty } from '@/lib/calculations/penalties';
 import { dueDateFor } from '@/lib/calculations/dueDates';
 import { useAtoStore } from '@/store/ato';
 import { useLodgementHistoryStore } from '@/store/lodgementHistory';
+import type { MissedPeriod } from '@/types/lodgement';
 import { toast } from 'sonner';
 
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const;
 type Quarter = (typeof QUARTERS)[number];
 
 type MissedType = 'gst-bas' | 'company-tax';
-
-type MissedPeriod = {
-  id: number;
-  type: MissedType;
-  quarter: Quarter | '';
-  year: string;
-  label: string;
-  amount: string;
-  dueDate: string;
-  notes: string;
-};
 
 const STORAGE_KEY = 'gstcalc_missed_lodgements_v2';
 
